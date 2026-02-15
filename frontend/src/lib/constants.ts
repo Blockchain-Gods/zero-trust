@@ -8,47 +8,87 @@ import {
 
 export const BOT_TYPES: Record<
   BotType,
-  { name: string; icon: string; description: string }
+  {
+    name: string;
+    icon: string;
+    description: string;
+    loopInterval: number; // seconds - how often abilities repeat
+    baseTokens: number; // starting budget
+    damageMultiplier: number;
+    specialAbilityDiscount: SpecialAbility | null; // which ability is cheaper
+  }
 > = {
   malware: {
     name: "Malware",
     icon: "🦠",
     description: "General purpose attack bot - balanced stats",
+    loopInterval: 90,
+    baseTokens: 100,
+    damageMultiplier: 1.0,
+    specialAbilityDiscount: null,
   },
   trojan: {
     name: "Trojan",
     icon: "🐴",
     description: "Disguises as legitimate process - harder to detect",
+    loopInterval: 90,
+    baseTokens: 105,
+    damageMultiplier: 0.9,
+    specialAbilityDiscount: "stealth",
   },
   ransomware: {
     name: "Ransomware",
     icon: "🔒",
     description: "Encrypts data rapidly - high damage rate",
+    loopInterval: 90,
+    baseTokens: 80,
+    damageMultiplier: 1.5,
+    specialAbilityDiscount: "encryption",
   },
   worm: {
     name: "Worm",
     icon: "🪱",
     description: "Self-replicating - spawns multiple threats",
+    loopInterval: 60, // FASTER loops!
+    baseTokens: 110,
+    damageMultiplier: 0.8,
+    specialAbilityDiscount: "replication",
   },
   rootkit: {
     name: "Rootkit",
     icon: "👻",
     description: "Deep system access - requires advanced skills",
+    loopInterval: 90,
+    baseTokens: 100,
+    damageMultiplier: 1.0,
+    specialAbilityDiscount: "stealth",
   },
   spyware: {
     name: "Spyware",
     icon: "🕵️",
     description: "Silent data exfiltration - slow but persistent",
+    loopInterval: 120, // SLOWER loops but persistent
+    baseTokens: 90,
+    damageMultiplier: 0.7,
+    specialAbilityDiscount: "persistence",
   },
   botnet: {
     name: "Botnet Agent",
     icon: "🤖",
     description: "Coordinated attack - multiple simultaneous threats",
+    loopInterval: 75,
+    baseTokens: 95,
+    damageMultiplier: 1.1,
+    specialAbilityDiscount: "replication",
   },
   logicbomb: {
     name: "Logic Bomb",
     icon: "💣",
     description: "Delayed activation - sudden burst damage",
+    loopInterval: 120, // NO LOOP - one-time only!
+    baseTokens: 90,
+    damageMultiplier: 2.0,
+    specialAbilityDiscount: null,
   },
 };
 
@@ -100,32 +140,37 @@ export const VICTORY_CONDITIONS: Record<
 
 export const SPECIAL_ABILITIES: Record<
   SpecialAbility,
-  { name: string; icon: string; description: string }
+  { name: string; icon: string; description: string; baseCost: number }
 > = {
   stealth: {
     name: "Stealth Mode",
     icon: "🥷",
     description: "Harder to detect - shows fewer symptoms initially",
+    baseCost: 20,
   },
   mutation: {
     name: "Code Mutation",
     icon: "🧬",
     description: "Changes required skills mid-cure",
+    baseCost: 25,
   },
   replication: {
     name: "Self-Replication",
     icon: "👯",
     description: "Spawns additional threats when damaged",
+    baseCost: 30,
   },
   encryption: {
     name: "Heavy Encryption",
     icon: "🔐",
     description: "Requires crypto skills to cure",
+    baseCost: 20,
   },
   persistence: {
     name: "Persistence",
     icon: "♾️",
     description: "Harder to fully remove - slow cure rate",
+    baseCost: 15,
   },
 };
 
