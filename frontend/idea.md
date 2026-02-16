@@ -4,11 +4,11 @@ A competitive cybersecurity game where hackers design encrypted attack bots and 
 
 ## 🎮 Core Gameplay
 
-**Hacker Side:** Design attack bots with encrypted configurations (target systems, required skills, spawn patterns, special abilities). Deploy bots and earn reputation based on average damage dealt to defenders.
+**Hacker Side:** Design attack bots with public configurations (target systems, required skills, spawn patterns, special abilities) stored as NFT metadata. Deploy bots and earn reputation based on average damage dealt to defenders. Bot configs are visible to all—the challenge is public, like a typing prompt.
 
-**Defender Side:** Face encrypted bots in 90-second rounds. Drag-and-drop specialist developers onto incoming infections before damage meters hit 100%. Learn bot strategy through symptoms while racing against time.
+**Defender Side:** Face public bot configs in timed rounds. Drag-and-drop specialist developers from a fixed pool onto incoming infections before damage meters hit 100%. Your strategic decisions (which devs, when to assign, timing) remain private—only you and the ZK circuit see your "solution."
 
-**ZK Proof:** Risc Zero verifies bot config validity and defender actions were legitimate, then updates dual leaderboards on Stellar—without revealing bot strategies.
+**ZK Proof:** Risc Zero proves your defense score is legitimate by replaying your private action log against the public bot config using deterministic game rules. Your strategy stays hidden while your score is cryptographically verified—no one can copy your solution or cheat the leaderboard.
 
 ---
 
@@ -25,9 +25,9 @@ A competitive cybersecurity game where hackers design encrypted attack bots and 
 
 ### Blockchain + ZK
 
-- **Risc Zero** - ZK proof generation (bot config validity + score verification)
-- **Stellar** - Smart contracts (leaderboard, bot registry, score settlement)
-- **IPFS / Backend storage** - Encrypted bot configs
+- **Risc Zero** - ZK proof generation (defender action verification + score computation)
+- **Stellar** - Smart contracts (leaderboard, bot NFT registry, score settlement)
+- **NFT Metadata** - Public bot configurations (no encryption needed)
 
 ### Development
 
@@ -52,11 +52,11 @@ cyberdefense/
 │   │       └── page.tsx             # Dual leaderboards
 │   ├── api/
 │   │   ├── bots/
-│   │   │   ├── create/route.ts      # Store encrypted bot
-│   │   │   ├── list/route.ts        # Get available bots
-│   │   │   └── [id]/route.ts        # Get bot by ID
+│   │   │   ├── create/route.ts      # Mint bot NFT
+│   │   │   ├── list/route.ts        # Get available bot NFTs
+│   │   │   │   └── [id]/route.ts        # Get bot config from NFT
 │   │   ├── defense/
-│   │   │   └── submit/route.ts      # Submit defense result
+│   │   │   └── submit/route.ts      # Submit defense replay for proving
 │   │   └── proof/
 │   │       └── generate/route.ts    # Risc Zero proof gen
 │   ├── layout.tsx
@@ -101,7 +101,7 @@ cyberdefense/
 │   ├── blockchain/
 │   │   ├── stellar.ts               # Stellar SDK integration
 │   │   ├── riscZero.ts              # Risc Zero prover client
-│   │   └── ipfs.ts                  # Bot config storage
+│   │   └── nft.ts                   # Bot NFT minting/reading
 │   │
 │   ├── stores/
 │   │   ├── useGameStore.ts          # Zustand: game state
@@ -217,18 +217,19 @@ Visit `http://localhost:3000`
 **Goal:** ZK proofs + Stellar leaderboard
 
 - [ ] Set up Risc Zero guest program:
-  - [ ] Verify bot config structure
-  - [ ] Reproduce threat generation
-  - [ ] Validate defender actions
-  - [ ] Calculate final score
+  - [ ] Parse compact replay format
+  - [ ] Reproduce threat generation from bot config + seed
+  - [ ] Validate action constraints (timing, dev availability)
+  - [ ] Calculate final score deterministically
+  - [ ] Commit public outputs to journal
 - [ ] Create proof generation API route
-- [ ] Deploy Stellar smart contract (leaderboard storage)
-- [ ] Implement bot encryption/decryption
-- [ ] Store encrypted bots on IPFS or backend
+- [ ] Deploy Groth16 verifier contract (Nethermind)
+- [ ] Deploy Stellar leaderboard contract
+- [ ] Implement bot NFT minting (public metadata)
 - [ ] Integrate proof submission flow
 - [ ] Build dual leaderboards (attacker/defender)
 - [ ] Add wallet connection (Freighter for Stellar)
-- [ ] Test: Can you submit a score and see it on-chain?
+- [ ] Test: Can you submit a verified score and see it on-chain?
 
 **Deliverable:** Full ZK-enabled game on testnet
 
@@ -441,6 +442,265 @@ function selectTarget(config: BotConfig, rng: () => number): SystemTarget {
 
 ---
 
+## 🔐 ZK Architecture (TypeZERO-Aligned Privacy Model)
+
+### Privacy Philosophy
+
+**PUBLIC (Like TypeZERO's prompt):**
+
+- Bot configuration NFT (the "challenge")
+- Developer pool (fixed set, same for all players)
+- Game rules & scoring formulas
+
+**PRIVATE (Like TypeZERO's replay):**
+
+- Defender's action log (the "solution")
+- Strategic decisions & timing
+- Assignment sequences
+
+**COMMITTED (Like TypeZERO's public outputs):**
+
+- Bot ID (config hash)
+- Defender address
+- Final score
+- Threats cured/failed
+- Duration
+- Action log hash (for auditability)
+
+### Data Flow
+
+```
+1. ATTACKER CREATES BOT
+   ├─ Design bot config in UI
+   ├─ Mint NFT with config as metadata (PUBLIC)
+   └─ Config cached by backend
+
+2. DEFENDER PLAYS
+   ├─ Fetch bot config from NFT (PUBLIC)
+   ├─ Generate seed = hash(botId + defenderId + timestamp)
+   ├─ Generate threats deterministically (RNG from seed)
+   ├─ Player drags devs, actions logged LOCALLY (PRIVATE)
+   └─ Game ends, compact replay created
+
+3. PROOF GENERATION
+   ├─ Frontend sends to backend:
+   │  ├─ Public: botId, defenderId, claimed score
+   │  └─ Private: action replay (compact binary)
+   ├─ Backend Risc Zero:
+   │  ├─ Fetches bot config from cache/NFT
+   │  ├─ Replays actions deterministically
+   │  ├─ Validates constraints (timing, validity)
+   │  ├─ Computes score independently
+   │  └─ Commits public outputs to journal
+   └─ Returns: proof seal, journal hash, image ID
+
+4. ON-CHAIN SUBMISSION
+   ├─ Frontend calls Stellar contract
+   ├─ Contract verifies:
+   │  ├─ Proof via Groth16 verifier
+   │  ├─ Image ID matches (prevents program substitution)
+   │  └─ Invoker == defender in journal
+   └─ Updates leaderboard if valid
+```
+
+### Action Replay Format
+
+Compact binary encoding (similar to TypeZERO's keystroke log):
+
+```typescript
+interface DefenseReplay {
+  botId: BytesN<32>;           // Which bot was faced
+  defenderId: Address;          // Who played
+  gameSeed: BytesN<32>;        // Deterministic RNG seed
+  startTimestamp: u64;         // Game start time
+  events: ReplayEvent[];       // Compact action log
+}
+
+// Compact event encoding (5-7 bytes each)
+struct ReplayEvent {
+  timestamp_ms: u32,    // Time from game start
+  action_type: u8,      // ASSIGN=0, UNASSIGN=1
+  dev_id: u8,           // Developer 0-9 (fixed pool)
+  threat_id: u8,        // Threat index
+}
+```
+
+### ZK Guest Program Logic
+
+```rust
+// risc0/defense_verifier/guest/src/main.rs
+
+pub fn main() {
+    // Read public inputs
+    let public: PublicInputs = env::read();
+
+    // Read private inputs (the replay)
+    let private: PrivateInputs = env::read();
+
+    // 1. Verify bot config hash
+    let bot_config = fetch_bot_config(public.bot_id);
+    assert_eq!(hash(bot_config), public.bot_id);
+
+    // 2. Generate threats deterministically
+    let threats = generate_threats(
+        &bot_config,
+        private.replay.gameSeed
+    );
+
+    // 3. Replay defender actions
+    let result = replay_defense(
+        &threats,
+        &private.replay.events,
+        FIXED_DEVELOPER_POOL
+    );
+
+    // 4. Validate timing constraints
+    for event in &private.replay.events {
+        assert!(event.timestamp_ms >= MIN_ACTION_INTERVAL);
+    }
+
+    // 5. Compute score deterministically
+    let score = calculate_score(&result);
+
+    // 6. Commit public outputs
+    env::commit(&PublicOutputs {
+        bot_id: public.bot_id,
+        defender: private.replay.defenderId,
+        score,
+        threats_total: threats.len(),
+        threats_cured: result.cured_count,
+        threats_failed: result.failed_count,
+        duration_ms: result.duration_ms,
+        replay_hash: hash(&private.replay.events),
+    });
+}
+```
+
+### Soroban Contract Interface
+
+```rust
+// contracts/leaderboard/src/lib.rs
+
+#[contract]
+pub struct LeaderboardContract;
+
+#[contractimpl]
+impl LeaderboardContract {
+    // Submit verified score
+    pub fn submit_score(
+        env: Env,
+        bot_id: BytesN<32>,
+        defender: Address,
+        score: u64,
+        threats_cured: u32,
+        threats_failed: u32,
+        duration_ms: u32,
+        journal_hash: BytesN<32>,
+        image_id: BytesN<32>,
+        seal: Bytes
+    ) {
+        // Enforce: only defender can submit their own score
+        defender.require_auth();
+
+        // Verify proof via Groth16 verifier
+        let verifier: Address = env.storage().instance().get(&VERIFIER_ID).unwrap();
+        verify_proof(env, verifier, image_id, journal_hash, seal);
+
+        // Update best score if improved
+        update_leaderboard(env, bot_id, defender, score, ...);
+    }
+
+    // Get top N defenders for a bot
+    pub fn get_top(env: Env, bot_id: BytesN<32>) -> Vec<LeaderboardEntry>;
+
+    // Get defender's best score
+    pub fn get_best(env: Env, bot_id: BytesN<32>, defender: Address) -> Option<ScoreEntry>;
+}
+```
+
+### Fixed Developer Pool
+
+```typescript
+// lib/utils/constants.ts
+
+export const FIXED_DEVELOPER_POOL = [
+  {
+    id: 0,
+    name: "Alice",
+    skills: ["Python", "Network Security", "Wireshark"],
+  },
+  {
+    id: 1,
+    name: "Bob",
+    skills: ["Rust", "Cryptography", "IDA Pro"],
+  },
+  {
+    id: 2,
+    name: "Charlie",
+    skills: ["JavaScript", "Web Security", "Burp Suite"],
+  },
+  {
+    id: 3,
+    name: "Diana",
+    skills: ["C/C++", "Endpoint Protection", "Volatility"],
+  },
+  {
+    id: 4,
+    name: "Eve",
+    skills: ["Java", "Database Security", "Splunk"],
+  },
+  {
+    id: 5,
+    name: "Frank",
+    skills: ["Assembly", "Forensics", "Metasploit"],
+  },
+  // ... up to 10 developers
+] as const;
+```
+
+### Deterministic Scoring
+
+```typescript
+// Identical implementation in:
+// - Frontend (for preview)
+// - ZK Guest (for verification)
+// - Contract (for validation)
+
+function calculateScore(result: DefenseResult): number {
+  const cureRate = result.threats_cured / result.threats_total;
+  const accuracy_bps = Math.floor(cureRate * 10000);
+
+  // Time bonus (faster = better)
+  const expectedTime = result.threats_total * 5000; // 5s per threat
+  const timeFactor = Math.max(0, expectedTime / result.duration_ms);
+
+  // Final score (scaled integer)
+  return Math.floor(accuracy_bps * timeFactor);
+}
+```
+
+### Security Guarantees
+
+✅ **Defender can't cheat:**
+
+- Can't fake cure times (ZK recalculates with deterministic rates)
+- Can't claim higher scores (ZK independently computes)
+- Can't copy solutions (action logs stay private)
+
+✅ **Attacker creativity rewarded:**
+
+- Bot configs are public (showcases design skill)
+- Leaderboard shows average defender performance
+- Hard bots = more reputation
+
+✅ **No backend trust required:**
+
+- Backend can't submit fake scores (defender auth required)
+- Backend can't see defender strategies (replay is private)
+- Proof verification enforces correctness
+
+---
+
 ## 🧪 Testing Locally
 
 ```bash
@@ -477,15 +737,16 @@ pnpm test lib/game/threatGenerator.test.ts
 # .env.local
 NEXT_PUBLIC_STELLAR_RPC_URL=https://soroban-testnet.stellar.org
 NEXT_PUBLIC_STELLAR_NETWORK_PASSPHRASE=Test SDF Network ; September 2015
-STELLAR_CONTRACT_ADDRESS=C...
+STELLAR_LEADERBOARD_CONTRACT_ID=C...
+STELLAR_VERIFIER_CONTRACT_ID=C...
 
 RISC_ZERO_PROVER_URL=http://localhost:8080
 RISC_ZERO_IMAGE_ID=...
 
-IPFS_GATEWAY=https://ipfs.io/ipfs/
-IPFS_API_URL=https://api.pinata.cloud
+# Bot NFT contract (if using separate NFT standard)
+STELLAR_BOT_NFT_CONTRACT_ID=C...
 
-DATABASE_URL=postgresql://... (for bot storage, optional)
+DATABASE_URL=postgresql://... (for bot config cache, optional)
 ```
 
 ---
@@ -493,15 +754,32 @@ DATABASE_URL=postgresql://... (for bot storage, optional)
 ## 🚢 Deployment
 
 ```bash
-# Deploy frontend
-vercel deploy
+# 1. Deploy Groth16 verifier contract (Nethermind)
+stellar contract deploy \
+  --wasm verifier.wasm \
+  --network testnet
 
-# Deploy Stellar contract
+# 2. Deploy leaderboard contract
+cd contracts/leaderboard
+stellar contract build
+
 stellar contract deploy \
   --wasm target/wasm32-unknown-unknown/release/leaderboard.wasm \
   --network testnet
 
-# Set up Risc Zero prover (can run locally or use Bonsai)
+# 3. Initialize leaderboard
+stellar contract invoke \
+  --id <LEADERBOARD_CONTRACT> \
+  --network testnet \
+  -- init \
+  --verifier_id <VERIFIER_CONTRACT> \
+  --image_id <RISC_ZERO_IMAGE_ID> \
+  --admin <ADMIN_ADDRESS>
+
+# 4. Deploy frontend
+vercel deploy
+
+# 5. Set up Risc Zero prover (can run locally or use Bonsai)
 # Follow Risc Zero docs for production deployment
 ```
 
@@ -668,7 +946,3 @@ This is a hackathon project, but PRs welcome for:
 ## 📄 License
 
 Creative Commons Zero
-
----
-
-**Let's build something the judges haven't seen before. 🚀**

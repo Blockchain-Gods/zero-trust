@@ -20,7 +20,7 @@ export const BOT_TYPES: Record<
 > = {
   malware: {
     name: "Malware",
-    icon: "🦠",
+    icon: "/bots/malware.png",
     description: "General purpose attack bot - balanced stats",
     loopInterval: 90,
     baseTokens: 100,
@@ -29,7 +29,7 @@ export const BOT_TYPES: Record<
   },
   trojan: {
     name: "Trojan",
-    icon: "🐴",
+    icon: "/bots/trojan.png",
     description: "Disguises as legitimate process - harder to detect",
     loopInterval: 90,
     baseTokens: 105,
@@ -38,7 +38,7 @@ export const BOT_TYPES: Record<
   },
   ransomware: {
     name: "Ransomware",
-    icon: "🔒",
+    icon: "/bots/ransomware.png",
     description: "Encrypts data rapidly - high damage rate",
     loopInterval: 90,
     baseTokens: 80,
@@ -47,7 +47,7 @@ export const BOT_TYPES: Record<
   },
   worm: {
     name: "Worm",
-    icon: "🪱",
+    icon: "/bots/worm.png",
     description: "Self-replicating - spawns multiple threats",
     loopInterval: 60, // FASTER loops!
     baseTokens: 110,
@@ -56,7 +56,7 @@ export const BOT_TYPES: Record<
   },
   rootkit: {
     name: "Rootkit",
-    icon: "👻",
+    icon: "/bots/rootkit.png",
     description: "Deep system access - requires advanced skills",
     loopInterval: 90,
     baseTokens: 100,
@@ -65,7 +65,7 @@ export const BOT_TYPES: Record<
   },
   spyware: {
     name: "Spyware",
-    icon: "🕵️",
+    icon: "/bots/spyware.png",
     description: "Silent data exfiltration - slow but persistent",
     loopInterval: 120, // SLOWER loops but persistent
     baseTokens: 90,
@@ -74,7 +74,7 @@ export const BOT_TYPES: Record<
   },
   botnet: {
     name: "Botnet Agent",
-    icon: "🤖",
+    icon: "/bots/botnet-agent.png",
     description: "Coordinated attack - multiple simultaneous threats",
     loopInterval: 75,
     baseTokens: 95,
@@ -83,7 +83,7 @@ export const BOT_TYPES: Record<
   },
   logicbomb: {
     name: "Logic Bomb",
-    icon: "💣",
+    icon: "/bots/logic-bomb.png",
     description: "Delayed activation - sudden burst damage",
     loopInterval: 120, // NO LOOP - one-time only!
     baseTokens: 90,
@@ -144,31 +144,31 @@ export const SPECIAL_ABILITIES: Record<
 > = {
   stealth: {
     name: "Stealth Mode",
-    icon: "🥷",
+    icon: "/abilities/stealth-mode.png",
     description: "Harder to detect - shows fewer symptoms initially",
     baseCost: 20,
   },
   mutation: {
     name: "Code Mutation",
-    icon: "🧬",
+    icon: "/abilities/code-mutation.png",
     description: "Changes required skills mid-cure",
     baseCost: 25,
   },
   replication: {
     name: "Self-Replication",
-    icon: "👯",
+    icon: "/abilities/self-replication.png",
     description: "Spawns additional threats when damaged",
     baseCost: 30,
   },
   encryption: {
     name: "Heavy Encryption",
-    icon: "🔐",
+    icon: "/abilities/heavy-encryption.png",
     description: "Requires crypto skills to cure",
     baseCost: 20,
   },
   persistence: {
     name: "Persistence",
-    icon: "♾️",
+    icon: "/abilities/persistence.png",
     description: "Harder to fully remove - slow cure rate",
     baseCost: 15,
   },

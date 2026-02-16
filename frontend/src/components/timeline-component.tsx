@@ -3,6 +3,14 @@
 import { useDraggable, useDroppable } from "@dnd-kit/core";
 import { SpecialAbility } from "@/lib/types";
 import { SPECIAL_ABILITIES } from "@/lib/constants";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+
+import Image from "next/image";
 
 export interface TimelineEvent {
   id: string;
@@ -40,7 +48,7 @@ export function VideoTimeline({
   });
 
   return (
-    <div className="relative overflow-x-auto">
+    <div className="relative overflow-x-clip">
       <div
         className="relative bg-[#0d1b2a] border-2 border-[#00e5ff]/30 rounded"
         style={{ width: timelineWidth, minWidth: "100%" }}
@@ -137,14 +145,21 @@ function TimelineTrack({
 
   return (
     <div
-      className={`relative h-12 border-b border-[#64748b]/20 ${hasEvents ? "bg-[#1a2332]/30" : ""}`}
+      className={`relative h-16 border-b border-[#64748b]/20 ${hasEvents ? "bg-[#1a2332]/30" : ""}`}
     >
       {/* Track label */}
-      <div className="absolute left-0 top-0 h-full w-30 flex items-center gap-2 px-2 bg-[#0d1b2a] border-r border-[#64748b]/30 z-10">
-        <span className="text-lg">{abilityInfo.icon}</span>
-        <span className="text-[9px] text-[#00e5ff] font-bold">
+      <div className="absolute left-0 top-0 h-full w-30 flex flex-col items-center gap-2 px-2 bg-[#0d1b2a] border-r border-[#64748b]/30 z-10">
+        <Image
+          src={abilityInfo.icon}
+          alt={abilityInfo.name}
+          width={40}
+          height={40}
+          className="my-auto mx-auto"
+        />
+
+        {/* <span className="text-[9px] text-[#00e5ff] font-bold">
           {abilityInfo.name.split(" ")[0].toUpperCase()}
-        </span>
+        </span> */}
       </div>
 
       {/* Drop zones every 5 seconds */}
@@ -192,12 +207,12 @@ function TimelineDropZone({
   return (
     <div
       ref={setNodeRef}
-      className={`absolute top-0 h-full transition ${
+      className={`absolute top-0 h-full rounded transition ${
         isOver ? "bg-[#0ff]/20 border-2 border-[#0ff]" : ""
       }`}
       style={{
         left: timestamp * pixelsPerSecond,
-        width: 5 * pixelsPerSecond, // 5 second slots
+        width: 10 * pixelsPerSecond, // 5 second slots
       }}
     />
   );
@@ -214,45 +229,69 @@ function TimelineEventBlock({
   onRemove: () => void;
   pixelsPerSecond: number;
 }) {
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id: event.id,
+    data: { type: "timeline-event", event },
+  });
+
   const colorMap: Record<SpecialAbility, string> = {
-    stealth: "from-purple-500 to-purple-700",
-    mutation: "from-green-500 to-green-700",
-    replication: "from-blue-500 to-blue-700",
-    encryption: "from-orange-500 to-orange-700",
-    persistence: "from-pink-500 to-pink-700",
+    stealth: "from-purple-500/30 to-purple-600/30",
+    mutation: "from-green-500/30 to-green-600/30",
+    replication: "from-blue-500/30 to-blue-600/30",
+    encryption: "from-orange-500/30 to-orange-600/30",
+    persistence: "from-pink-500/30 to-pink-600/30",
   };
 
   return (
-    <div
-      className={`absolute top-1 h-10 rounded group cursor-pointer bg-linear-to-r ${colorMap[event.ability]} border-2 border-white/20 hover:border-white/40 transition`}
-      style={{
-        left: event.startTime * pixelsPerSecond,
-        width: event.duration * pixelsPerSecond,
-      }}
-    >
-      <div className="relative h-full px-2 flex items-center justify-between">
-        <div className="flex items-center gap-1">
-          <span className="text-lg">{abilityInfo.icon}</span>
-          <div>
-            <div className="text-[10px] font-bold text-white">
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div
+            ref={setNodeRef}
+            {...listeners}
+            {...attributes}
+            className={`absolute h-full rounded group cursor-move bg-gradient-to-r ${colorMap[event.ability]} border border-white/10 hover:border-white/40 transition ${isDragging ? "opacity-50" : ""}`}
+            style={{
+              left: event.startTime * pixelsPerSecond,
+              width: event.duration * pixelsPerSecond,
+            }}
+          >
+            <div className="relative h-full px-2 flex flex-col items-center gap-0">
+              <Image
+                src={abilityInfo.icon}
+                alt={abilityInfo.name}
+                width={50}
+                height={50}
+                className="my-auto mx-auto"
+              />
+            </div>
+
+            <div
+              className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-red-500/50 text-white text-xs flex items-center justify-center cursor-pointer hover:bg-red-500/80 border border-white/20"
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation();
+                onRemove();
+              }}
+            >
+              ×
+            </div>
+          </div>
+        </TooltipTrigger>
+        <TooltipContent
+          side="top"
+          className="bg-background/80 border-[#00e5ff]/60"
+        >
+          <div className="">
+            <div className="font-bold text-[#00e5ff] text-xs mb-1">
               {abilityInfo.name}
             </div>
-            <div className="text-[8px] text-white/70">{event.duration}s</div>
+            <div className="text-[#94a3b8] mb-2">{abilityInfo.description}</div>
+            <div className="text-sm text-white/70">{event.duration}sec</div>
+            <div className="text-[#fbbf24]  font-bold">{event.cost}🪙</div>
           </div>
-        </div>
-
-        <button
-          onClick={onRemove}
-          className="w-5 h-5 rounded-full bg-red-500 text-white text-xs opacity-0 group-hover:opacity-100 transition hover:bg-red-400"
-        >
-          ×
-        </button>
-      </div>
-
-      {/* Cost badge */}
-      <div className="absolute -top-2 -right-2 bg-[#fbbf24] text-black text-[8px] font-bold px-1.5 py-0.5 rounded-full">
-        {event.cost}🪙
-      </div>
-    </div>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }

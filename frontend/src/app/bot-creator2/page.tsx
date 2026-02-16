@@ -16,6 +16,8 @@ import {
   SpawnCurveChart,
   DamageCurveChart,
 } from "@/components/charts-component";
+import Image from "next/image";
+import { FlickeringGrid } from "@/components/ui/flickering-grid";
 
 interface BotCreatorState {
   botName: string;
@@ -31,6 +33,7 @@ export default function BotCreatorFinalPage() {
     timeline: [],
   });
   const [activeDrag, setActiveDrag] = useState<any>(null);
+  const [eventCounter, setEventCounter] = useState(0);
 
   const botConfig = state.botType ? BOT_TYPES[state.botType] : null;
   const tokensUsed = state.timeline.reduce((sum, event) => sum + event.cost, 0);
@@ -45,24 +48,35 @@ export default function BotCreatorFinalPage() {
     const dragData = active.data.current;
     const dropData = over.data.current;
 
-    // Drop ability on timeline
-    if (dragData?.type === "ability" && dropData?.type === "timeline") {
+    // Moving existing timeline event
+    if (dragData?.type === "timeline-event" && dropData?.type === "timeline") {
+      const existingEvent = dragData.event as TimelineEvent;
+      setState({
+        ...state,
+        timeline: state.timeline.map((e) =>
+          e.id === existingEvent.id
+            ? { ...e, startTime: dropData.timestamp, ability: dropData.ability }
+            : e,
+        ),
+      });
+    }
+    // Drop new ability on timeline
+    else if (dragData?.type === "ability" && dropData?.type === "timeline") {
       const abilityId = dragData.abilityId as SpecialAbility;
       const ability = SPECIAL_ABILITIES[abilityId];
 
-      // Calculate cost with discount
       const isDiscounted = botConfig?.specialAbilityDiscount === abilityId;
       const cost = isDiscounted
         ? Math.floor(ability.baseCost * 0.7)
         : ability.baseCost;
 
-      // Check if can afford
       if (tokensRemaining >= cost) {
+        setEventCounter((prev) => prev + 1);
         const newEvent: TimelineEvent = {
-          id: `event-${Date.now()}`,
+          id: `event-${eventCounter}`,
           ability: abilityId,
           startTime: dropData.timestamp,
-          duration: 10, // Default 10 second duration
+          duration: 10,
           cost,
         };
 
@@ -186,12 +200,18 @@ export default function BotCreatorFinalPage() {
                           : "border-[#64748b] bg-[#1a2332]/50 hover:border-[#0ff]/60"
                       }`}
                     >
-                      <div className="text-2xl mb-1">{info.icon}</div>
-                      <div className="text-[9px] text-[#00e5ff] font-bold leading-tight">
+                      <Image
+                        src={info.icon}
+                        alt={info.name}
+                        width={50}
+                        height={50}
+                        className="mb-2 mx-auto"
+                      />
+                      <div className="text-md text-[#00e5ff] font-bold leading-tight">
                         {info.name.toUpperCase()}
                       </div>
-                      <div className="text-[8px] text-[#94a3b8] mt-1">
-                        {info.baseTokens}🪙
+                      <div className="text-sm text-[#94a3b8] mt-1">
+                        {info.baseTokens}
                       </div>
                     </button>
                   ))}
@@ -265,13 +285,28 @@ export default function BotCreatorFinalPage() {
             <div className="col-span-6 space-y-4">
               {/* Bot Preview */}
               <div className="relative">
-                <div className="absolute inset-0 bg-[#00e5ff]/40 blur-3xl animate-pulse" />
-                <div className="relative h-40 border-4 border-[#00e5ff]/50 bg-[#1a2332]/30 backdrop-blur-sm rounded-lg flex items-center justify-center">
-                  <div className="relative">
-                    <div className="absolute inset-0 bg-linear-to-b from-[#fbbf24] via-[#00e5ff] to-[#a78bfa] blur-2xl opacity-60 animate-pulse" />
-                    <div className="relative text-8xl animate-float">
-                      {state.botType ? BOT_TYPES[state.botType].icon : "❓"}
-                    </div>
+                <div className="absolute inset-0 bg-pink-700/40 blur-3xl animate-pulse" />
+                <div className="relative h-80 border-4 border-[#00e5ff]/50 bg-rose-950/30 backdrop-blur-sm rounded-lg overflow-hidden flex items-center justify-center">
+                  <FlickeringGrid
+                    className="absolute inset-0 z-0"
+                    squareSize={4}
+                    gridGap={6}
+                    color="#ef4444"
+                    maxOpacity={0.5}
+                    flickerChance={0.1}
+                  />
+                  <div className="relative z-10 text-8xl animate-float">
+                    {state.botType ? (
+                      <Image
+                        src={BOT_TYPES[state.botType].icon}
+                        alt={BOT_TYPES[state.botType].name}
+                        width={180}
+                        height={180}
+                        className="mb-1 mx-auto"
+                      />
+                    ) : (
+                      "❓"
+                    )}
                   </div>
                 </div>
               </div>
@@ -330,9 +365,16 @@ export default function BotCreatorFinalPage() {
                           className="flex justify-between items-center text-xs bg-[#1a2332]/30 p-2 rounded"
                         >
                           <div className="flex items-center gap-2">
-                            <span className="text-lg">
+                            {/* <span className="text-lg">
                               {SPECIAL_ABILITIES[event.ability].icon}
-                            </span>
+                            </span> */}
+                            <Image
+                              src={SPECIAL_ABILITIES[event.ability].icon}
+                              alt={SPECIAL_ABILITIES[event.ability].name}
+                              width={40}
+                              height={40}
+                              className="my-auto mx-auto"
+                            />
                             <div>
                               <div className="text-[#00e5ff] font-bold">
                                 {event.startTime}s
@@ -381,7 +423,13 @@ export default function BotCreatorFinalPage() {
         <DragOverlay>
           {activeDrag && (
             <div className="bg-[#0ff]/25 border-2 border-[#0ff] p-3 rounded backdrop-blur-sm">
-              <div className="text-3xl">{activeDrag.icon}</div>
+              <Image
+                src={activeDrag.icon}
+                alt={activeDrag.name}
+                width={50}
+                height={50}
+                className="mb-2 mx-auto"
+              />
             </div>
           )}
         </DragOverlay>
@@ -455,13 +503,19 @@ function DraggableAbility({
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="text-xl">{info.icon}</span>
+          <Image
+            src={info.icon}
+            alt={info.name}
+            width={50}
+            height={50}
+            className="mb-2 mx-auto"
+          />
           <div>
             <div className="text-[10px] text-[#00e5ff] font-bold">
               {info.name.toUpperCase()}
             </div>
-            <div className="text-[8px] text-[#94a3b8]">
-              {info.description.slice(0, 25)}...
+            <div className="text-xs text-[#94a3b8] text-wrap">
+              {info.description}
             </div>
           </div>
         </div>

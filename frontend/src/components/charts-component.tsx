@@ -52,12 +52,12 @@ export function SpawnCurveChart({
 
   return (
     <div className="relative">
-      <div className="absolute top-2 left-2 z-10">
+      {/* <div className="absolute top-2 left-2 z-10">
         <div className="text-2xl font-bold text-[#4ade80]">
           {Math.round(springY.get())}
         </div>
         <div className="text-[10px] text-[#94a3b8]">Threats/10s</div>
-      </div>
+      </div> */}
 
       <ChartContainer
         ref={chartRef}
@@ -110,7 +110,7 @@ export function SpawnCurveChart({
               Number(chartRef.current?.getBoundingClientRect().width) - axis
             } 0 0)`}
           />
-          <line
+          {/* <line
             x1={axis}
             y1={0}
             x2={axis}
@@ -119,8 +119,8 @@ export function SpawnCurveChart({
             strokeDasharray="3 3"
             strokeLinecap="round"
             strokeOpacity={0.3}
-          />
-          <rect
+          /> */}
+          {/* <rect
             x={axis - 30}
             y={0}
             width={60}
@@ -137,7 +137,7 @@ export function SpawnCurveChart({
             fill="#0d1b2a"
           >
             {Math.round(springY.get())}
-          </text>
+          </text> */}
           {/* Ghost line behind */}
           <Area
             dataKey="spawns"
@@ -200,12 +200,12 @@ export function DamageCurveChart({
 
   return (
     <div className="relative">
-      <div className="absolute top-2 left-2 z-10">
+      {/* <div className="absolute top-2 left-2 z-10">
         <div className="text-2xl font-bold text-[#ff6b35]">
           {Math.round(springY.get())}%
         </div>
         <div className="text-[10px] text-[#94a3b8]">Cumulative Damage</div>
-      </div>
+      </div> */}
 
       <ChartContainer
         ref={chartRef}
@@ -258,7 +258,7 @@ export function DamageCurveChart({
               Number(chartRef.current?.getBoundingClientRect().width) - axis
             } 0 0)`}
           />
-          <line
+          {/* <line
             x1={axis}
             y1={0}
             x2={axis}
@@ -285,7 +285,7 @@ export function DamageCurveChart({
             fill="white"
           >
             {Math.round(springY.get())}%
-          </text>
+          </text> */}
           {/* Ghost line behind */}
           <Area
             dataKey="damage"
