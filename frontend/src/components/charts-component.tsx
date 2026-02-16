@@ -16,23 +16,6 @@ export function SpawnCurveChart({
   events,
   loopInterval,
 }: Omit<SpawnChartProps, "damageMultiplier">) {
-  const chartRef = useRef<HTMLDivElement>(null);
-  const [axis, setAxis] = useState(0);
-
-  const springX = useSpring(0, {
-    damping: 30,
-    stiffness: 100,
-  });
-  const springY = useSpring(0, {
-    damping: 30,
-    stiffness: 100,
-  });
-
-  useMotionValueEvent(springX, "change", (latest) => {
-    setAxis(latest);
-  });
-
-  // Generate spawn data
   const chartData = generateSpawnData(events, loopInterval);
 
   const chartConfig = {
@@ -51,111 +34,41 @@ export function SpawnCurveChart({
   }
 
   return (
-    <div className="relative">
-      {/* <div className="absolute top-2 left-2 z-10">
-        <div className="text-2xl font-bold text-[#4ade80]">
-          {Math.round(springY.get())}
-        </div>
-        <div className="text-[10px] text-[#94a3b8]">Threats/10s</div>
-      </div> */}
-
-      <ChartContainer
-        ref={chartRef}
-        className="h-48 w-full"
-        config={chartConfig}
-      >
-        <AreaChart
-          className="overflow-visible"
-          data={chartData}
-          onMouseMove={(state: any) => {
-            const x = state.activeCoordinate?.x;
-            const dataValue = state.activePayload?.[0]?.value;
-            if (x && dataValue !== undefined) {
-              springX.set(x);
-              springY.set(dataValue);
-            }
-          }}
-          onMouseLeave={() => {
-            springX.set(chartRef.current?.getBoundingClientRect().width || 0);
-            springY.jump(chartData[chartData.length - 1].spawns);
-          }}
-          margin={{
-            right: 0,
-            left: 0,
-            top: 20,
-          }}
-        >
-          <CartesianGrid
-            vertical={false}
-            strokeDasharray="3 3"
-            stroke="#64748b"
-            opacity={0.2}
-          />
-          <XAxis
-            dataKey="time"
-            tickLine={false}
-            axisLine={false}
-            tickMargin={8}
-            tick={{ fill: "#94a3b8", fontSize: 10 }}
-            tickFormatter={(value: any) => `${value}s`}
-          />
-          <Area
-            dataKey="spawns"
-            type="monotone"
-            fill="url(#gradient-spawn)"
-            fillOpacity={0.4}
-            stroke="#4ade80"
-            strokeWidth={2}
-            clipPath={`inset(0 ${
-              Number(chartRef.current?.getBoundingClientRect().width) - axis
-            } 0 0)`}
-          />
-          {/* <line
-            x1={axis}
-            y1={0}
-            x2={axis}
-            y2="85%"
-            stroke="#4ade80"
-            strokeDasharray="3 3"
-            strokeLinecap="round"
-            strokeOpacity={0.3}
-          /> */}
-          {/* <rect
-            x={axis - 30}
-            y={0}
-            width={60}
-            height={18}
-            fill="#4ade80"
-            rx={4}
-          />
-          <text
-            x={axis}
-            fontWeight={600}
-            fontSize={12}
-            y={13}
-            textAnchor="middle"
-            fill="#0d1b2a"
-          >
-            {Math.round(springY.get())}
-          </text> */}
-          {/* Ghost line behind */}
-          <Area
-            dataKey="spawns"
-            type="monotone"
-            fill="none"
-            stroke="#4ade80"
-            strokeOpacity={0.1}
-            strokeWidth={2}
-          />
-          <defs>
-            <linearGradient id="gradient-spawn" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#4ade80" stopOpacity={0.3} />
-              <stop offset="95%" stopColor="#4ade80" stopOpacity={0} />
-            </linearGradient>
-          </defs>
-        </AreaChart>
-      </ChartContainer>
-    </div>
+    <ChartContainer className="h-48 w-full" config={chartConfig}>
+      <AreaChart data={chartData} margin={{ right: 0, left: 0, top: 20 }}>
+        <CartesianGrid
+          vertical={false}
+          strokeDasharray="3 3"
+          stroke="#64748b"
+          opacity={0.2}
+        />
+        <XAxis
+          dataKey="time"
+          tickLine={false}
+          axisLine={false}
+          tickMargin={8}
+          tick={{ fill: "#94a3b8", fontSize: 10 }}
+          tickFormatter={(value: any) => `${value}s`}
+        />
+        <Area
+          dataKey="spawns"
+          type="monotone"
+          fill="url(#gradient-spawn)"
+          fillOpacity={0.4}
+          stroke="#4ade80"
+          strokeWidth={2}
+          isAnimationActive={true}
+          dot={false}
+          activeDot={false}
+        />
+        <defs>
+          <linearGradient id="gradient-spawn" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor="#4ade80" stopOpacity={0.3} />
+            <stop offset="95%" stopColor="#4ade80" stopOpacity={0} />
+          </linearGradient>
+        </defs>
+      </AreaChart>
+    </ChartContainer>
   );
 }
 
@@ -164,23 +77,6 @@ export function DamageCurveChart({
   loopInterval,
   damageMultiplier,
 }: SpawnChartProps) {
-  const chartRef = useRef<HTMLDivElement>(null);
-  const [axis, setAxis] = useState(0);
-
-  const springX = useSpring(0, {
-    damping: 30,
-    stiffness: 100,
-  });
-  const springY = useSpring(0, {
-    damping: 30,
-    stiffness: 100,
-  });
-
-  useMotionValueEvent(springX, "change", (latest) => {
-    setAxis(latest);
-  });
-
-  // Generate damage data
   const chartData = generateDamageData(events, loopInterval, damageMultiplier);
 
   const chartConfig = {
@@ -199,114 +95,43 @@ export function DamageCurveChart({
   }
 
   return (
-    <div className="relative">
-      {/* <div className="absolute top-2 left-2 z-10">
-        <div className="text-2xl font-bold text-[#ff6b35]">
-          {Math.round(springY.get())}%
-        </div>
-        <div className="text-[10px] text-[#94a3b8]">Cumulative Damage</div>
-      </div> */}
-
-      <ChartContainer
-        ref={chartRef}
-        className="h-48 w-full"
-        config={chartConfig}
-      >
-        <AreaChart
-          className="overflow-visible"
-          data={chartData}
-          onMouseMove={(state: any) => {
-            const x = state.activeCoordinate?.x;
-            const dataValue = state.activePayload?.[0]?.value;
-            if (x && dataValue !== undefined) {
-              springX.set(x);
-              springY.set(dataValue);
-            }
-          }}
-          onMouseLeave={() => {
-            springX.set(chartRef.current?.getBoundingClientRect().width || 0);
-            springY.jump(chartData[chartData.length - 1].damage);
-          }}
-          margin={{
-            right: 0,
-            left: 0,
-            top: 20,
-          }}
-        >
-          <CartesianGrid
-            vertical={false}
-            strokeDasharray="3 3"
-            stroke="#64748b"
-            opacity={0.2}
-          />
-          <XAxis
-            dataKey="time"
-            tickLine={false}
-            axisLine={false}
-            tickMargin={8}
-            tick={{ fill: "#94a3b8", fontSize: 10 }}
-            tickFormatter={(value: any) => `${value}s`}
-          />
-          <Area
-            dataKey="damage"
-            type="monotone"
-            fill="url(#gradient-damage)"
-            fillOpacity={0.4}
-            stroke="#ff6b35"
-            strokeWidth={2}
-            clipPath={`inset(0 ${
-              Number(chartRef.current?.getBoundingClientRect().width) - axis
-            } 0 0)`}
-          />
-          {/* <line
-            x1={axis}
-            y1={0}
-            x2={axis}
-            y2="85%"
-            stroke="#ff6b35"
-            strokeDasharray="3 3"
-            strokeLinecap="round"
-            strokeOpacity={0.3}
-          />
-          <rect
-            x={axis - 30}
-            y={0}
-            width={60}
-            height={18}
-            fill="#ff6b35"
-            rx={4}
-          />
-          <text
-            x={axis}
-            fontWeight={600}
-            fontSize={12}
-            y={13}
-            textAnchor="middle"
-            fill="white"
-          >
-            {Math.round(springY.get())}%
-          </text> */}
-          {/* Ghost line behind */}
-          <Area
-            dataKey="damage"
-            type="monotone"
-            fill="none"
-            stroke="#ff6b35"
-            strokeOpacity={0.1}
-            strokeWidth={2}
-          />
-          <defs>
-            <linearGradient id="gradient-damage" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#ff6b35" stopOpacity={0.3} />
-              <stop offset="95%" stopColor="#ff6b35" stopOpacity={0} />
-            </linearGradient>
-          </defs>
-        </AreaChart>
-      </ChartContainer>
-    </div>
+    <ChartContainer className="h-48 w-full" config={chartConfig}>
+      <AreaChart data={chartData} margin={{ right: 0, left: 0, top: 20 }}>
+        <CartesianGrid
+          vertical={false}
+          strokeDasharray="3 3"
+          stroke="#64748b"
+          opacity={0.2}
+        />
+        <XAxis
+          dataKey="time"
+          tickLine={false}
+          axisLine={false}
+          tickMargin={8}
+          tick={{ fill: "#94a3b8", fontSize: 10 }}
+          tickFormatter={(value: any) => `${value}s`}
+        />
+        <Area
+          dataKey="damage"
+          type="monotone"
+          fill="url(#gradient-damage)"
+          fillOpacity={0.4}
+          stroke="#ff6b35"
+          strokeWidth={2}
+          isAnimationActive={true}
+          dot={false}
+          activeDot={false}
+        />
+        <defs>
+          <linearGradient id="gradient-damage" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor="#ff6b35" stopOpacity={0.3} />
+            <stop offset="95%" stopColor="#ff6b35" stopOpacity={0} />
+          </linearGradient>
+        </defs>
+      </AreaChart>
+    </ChartContainer>
   );
 }
-
 // Helper functions
 
 function generateSpawnData(events: TimelineEvent[], loopInterval: number) {

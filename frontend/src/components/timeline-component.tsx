@@ -235,11 +235,11 @@ function TimelineEventBlock({
   });
 
   const colorMap: Record<SpecialAbility, string> = {
-    stealth: "from-purple-500/30 to-purple-600/30",
-    mutation: "from-green-500/30 to-green-600/30",
-    replication: "from-blue-500/30 to-blue-600/30",
-    encryption: "from-orange-500/30 to-orange-600/30",
-    persistence: "from-pink-500/30 to-pink-600/30",
+    stealth: "from-purple-300/30 to-purple-400/30",
+    mutation: "from-green-300/30 to-green-400/30",
+    replication: "from-blue-300/30 to-blue-400/30",
+    encryption: "from-orange-300/30 to-orange-400/30",
+    persistence: "from-pink-300/30 to-pink-400/30",
   };
 
   return (
@@ -250,7 +250,7 @@ function TimelineEventBlock({
             ref={setNodeRef}
             {...listeners}
             {...attributes}
-            className={`absolute h-full rounded group cursor-move bg-gradient-to-r ${colorMap[event.ability]} border border-white/10 hover:border-white/40 transition ${isDragging ? "opacity-50" : ""}`}
+            className={`absolute h-full rounded group cursor-move bg-linear-to-r ${colorMap[event.ability]} border border-white/10 hover:border-white/40 transition ${isDragging ? "opacity-50" : ""}`}
             style={{
               left: event.startTime * pixelsPerSecond,
               width: event.duration * pixelsPerSecond,

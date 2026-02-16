@@ -422,14 +422,20 @@ export default function BotCreatorFinalPage() {
         {/* Drag Overlay */}
         <DragOverlay>
           {activeDrag && (
-            <div className="bg-[#0ff]/25 border-2 border-[#0ff] p-3 rounded backdrop-blur-sm">
-              <Image
-                src={activeDrag.icon}
-                alt={activeDrag.name}
+            <div className="bg-[#00ffff]/25 border-2 h-16 border-[#0ff]/20 p-3 rounded backdrop-blur-sm">
+              {/* <Image
+                src={
+                  SPECIAL_ABILITIES[activeDrag.abilityId].icon ||
+                  activeDrag.icon
+                }
+                alt={
+                  SPECIAL_ABILITIES[activeDrag.abilityId]?.name ||
+                  activeDrag.name
+                }
                 width={50}
                 height={50}
                 className="mb-2 mx-auto"
-              />
+              /> */}
             </div>
           )}
         </DragOverlay>
