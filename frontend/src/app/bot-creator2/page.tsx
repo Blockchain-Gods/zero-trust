@@ -8,7 +8,7 @@ import {
   DragOverlay,
   useDraggable,
 } from "@dnd-kit/core";
-import { BotConfig, BotType, SpecialAbility } from "@/lib/types";
+import { BotConfig, BotType, SpecialAbility } from "@/lib/types/types";
 import { BOT_TYPES, SPECIAL_ABILITIES } from "@/lib/constants";
 import { saveBotToLocalStorage } from "@/lib/storage";
 import { VideoTimeline, TimelineEvent } from "@/components/timeline-component";
@@ -112,6 +112,7 @@ export default function BotCreatorFinalPage() {
     };
 
     saveBotToLocalStorage(fullConfig);
+    console.log("🤖 Bot Config:", fullConfig);
     router.push("/bots");
   };
 
@@ -411,7 +412,7 @@ export default function BotCreatorFinalPage() {
                 >
                   <div className="absolute inset-0 bg-linear-to-r from-[#ff6b35] to-[#fbbf24] blur-lg opacity-80 group-hover:opacity-100 transition" />
                   <div className="relative bg-linear-to-r from-[#ff6b35] to-[#ff8c42] border-2 border-[#fbbf24] px-12 py-3 rounded font-bold text-xl text-white hover:from-[#ff8c42] hover:to-[#fbbf24] transition">
-                    🚀 DEPLOY BOT
+                    DEPLOY BOT
                   </div>
                 </button>
               </div>

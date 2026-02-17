@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { BotConfig, BotType, SpecialAbility } from "@/lib/types";
+import { BotConfig, BotType, SpecialAbility } from "@/lib/types/types";
 import { BOT_TYPES, SPECIAL_ABILITIES } from "@/lib/constants";
 import { saveBotToLocalStorage } from "@/lib/storage";
 import {

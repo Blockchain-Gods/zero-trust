@@ -1,6 +1,6 @@
 // Defense game specific types
 
-import { SystemTargetId, SkillId } from "./types";
+import { SystemTargetId, SkillId } from "./types/types";
 
 export interface Skill {
   id: SkillId;
@@ -44,4 +44,19 @@ export interface DefenseGameState {
   threatsCured: number;
   score: number;
   startTime: number | null;
+}
+
+export interface DefenseAction {
+  timestamp: number;
+  type: "ASSIGN" | "UNASSIGN";
+  developerId: string;
+  threatId: string;
+}
+
+export interface DefenseReplay {
+  botId: string;
+  defenderId: string;
+  gameSeed: string;
+  startTimestamp: number;
+  actions: DefenseAction[];
 }

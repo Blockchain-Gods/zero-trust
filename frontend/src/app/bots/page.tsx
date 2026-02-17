@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { SavedBot } from "@/lib/types";
+import { SavedBot } from "@/lib/types/types";
 import { getAllBots, deleteBot } from "@/lib/storage";
 import { BOT_TYPES, SYSTEM_TARGETS, SPECIAL_ABILITIES } from "@/lib/constants";
+import Image from "next/image";
 
 export default function BotsPage() {
   const router = useRouter();
@@ -52,7 +53,7 @@ export default function BotsPage() {
             </div>
           </div>
           <button
-            onClick={() => router.push("/bot-creator")}
+            onClick={() => router.push("/bot-creator2")}
             className="px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-500 transition"
           >
             + Create New Bot
@@ -67,7 +68,7 @@ export default function BotsPage() {
               Create your first attack bot to get started
             </p>
             <button
-              onClick={() => router.push("/bot-creator")}
+              onClick={() => router.push("/bot-creator2")}
               className="px-8 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-500 transition"
             >
               Create Your First Bot
@@ -131,10 +132,16 @@ function BotCard({
     >
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div className="text-4xl">{botType.icon}</div>
+          <Image
+            src={botType.icon}
+            alt={botType.name}
+            width={80}
+            height={80}
+            className="mb-2 mx-auto"
+          />
           <div>
             <h3 className="text-xl font-bold text-white">{bot.botName}</h3>
-            <p className="text-sm text-gray-400">{botType.name}</p>
+            <p className="text-md text-gray-400">{botType.name}</p>
           </div>
         </div>
         <button
@@ -183,7 +190,13 @@ function BotDetails({ bot }: { bot: SavedBot }) {
   return (
     <div className="bg-slate-800 rounded-lg p-6">
       <div className="flex items-center gap-4 mb-6 pb-6 border-b border-gray-700">
-        <div className="text-6xl">{botType.icon}</div>
+        <Image
+          src={botType.icon}
+          alt={botType.name}
+          width={160}
+          height={160}
+          className="mb-2"
+        />
         <div>
           <h2 className="text-3xl font-bold text-white mb-1">{bot.botName}</h2>
           <p className="text-gray-400">{botType.name}</p>
@@ -192,13 +205,13 @@ function BotDetails({ bot }: { bot: SavedBot }) {
 
       <div className="space-y-6">
         {/* Targeting */}
-        <div>
+        {/* <div>
           <h3 className="text-lg font-semibold text-white mb-3">
             Target Systems
           </h3>
           <div className="bg-slate-700 rounded-lg p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-2xl">{primaryTarget.icon}</span>
+            <div className="flex items-center gap-4 mb-2">
+              <span className="text-4xl">{primaryTarget.icon}</span>
               <div>
                 <div className="text-white font-medium">
                   {primaryTarget.name}
@@ -213,7 +226,7 @@ function BotDetails({ bot }: { bot: SavedBot }) {
                 <div className="text-xs text-gray-400 mb-2">
                   Secondary Targets (30%)
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-4">
                   {bot.secondaryTargets.map((targetId) => {
                     const target = SYSTEM_TARGETS[targetId];
                     return (
@@ -230,23 +243,27 @@ function BotDetails({ bot }: { bot: SavedBot }) {
               </div>
             )}
           </div>
-        </div>
+        </div> */}
 
         {/* Abilities */}
         {bot.abilities.length > 0 && (
           <div>
-            <h3 className="text-lg font-semibold text-white mb-3">
-              Special Abilities
-            </h3>
+            <h3 className="text-lg font-semibold text-white mb-3">Abilities</h3>
             <div className="space-y-2">
               {bot.abilities.map((abilityId) => {
                 const ability = SPECIAL_ABILITIES[abilityId];
                 return (
                   <div
                     key={abilityId}
-                    className="bg-slate-700 rounded-lg p-3 flex items-start gap-3"
+                    className="bg-slate-700 rounded-lg p-3 flex items-start gap-4"
                   >
-                    <span className="text-2xl">{ability.icon}</span>
+                    <Image
+                      src={ability.icon}
+                      alt={ability.name}
+                      width={80}
+                      height={80}
+                      className="mb-2"
+                    />
                     <div>
                       <div className="text-white font-medium">
                         {ability.name}

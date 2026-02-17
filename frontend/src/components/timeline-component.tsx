@@ -1,7 +1,7 @@
 "use client";
 
 import { useDraggable, useDroppable } from "@dnd-kit/core";
-import { SpecialAbility } from "@/lib/types";
+import { SpecialAbility } from "@/lib/types/types";
 import { SPECIAL_ABILITIES } from "@/lib/constants";
 import {
   Tooltip,

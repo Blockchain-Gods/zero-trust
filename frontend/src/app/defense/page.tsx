@@ -10,7 +10,7 @@ import {
   useDroppable,
 } from "@dnd-kit/core";
 import { Threat, Developer, DefenseGameState } from "@/lib/defense-types";
-import { BotConfig } from "@/lib/types";
+import { BotConfig } from "@/lib/types/types";
 import { getAllBots } from "@/lib/storage";
 import {
   generateThreatsFromBot,

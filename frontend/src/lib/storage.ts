@@ -1,4 +1,4 @@
-import { BotConfig, SavedBot } from "./types";
+import { BotConfig, SavedBot } from "./types/types";
 
 const STORAGE_KEY = "cyberdefense_bots";
 

@@ -4,7 +4,7 @@ import {
   ResourceAttackType,
   VictoryCondition,
   SpecialAbility,
-} from "./types";
+} from "./types/types";
 
 export const BOT_TYPES: Record<
   BotType,
@@ -162,7 +162,7 @@ export const SPECIAL_ABILITIES: Record<
   },
   encryption: {
     name: "Heavy Encryption",
-    icon: "/abilities/heavy-encryption.png",
+    icon: "/abilities/heavy-encryption",
     description: "Requires crypto skills to cure",
     baseCost: 20,
   },

@@ -9,7 +9,7 @@ import {
   ResourceAttackType,
   VictoryCondition,
   SpecialAbility,
-} from "@/lib/types";
+} from "@/lib/types/types";
 import {
   BOT_TYPES,
   SYSTEM_TARGETS,

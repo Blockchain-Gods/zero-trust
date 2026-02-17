@@ -23,7 +23,7 @@ export default function HomePage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           {/* Hacker Mode */}
           <button
-            onClick={() => router.push("/bot-creator")}
+            onClick={() => router.push("/bot-creator2")}
             className="group bg-slate-800 rounded-xl p-8 border-2 border-red-500/50 hover:border-red-500 transition transform hover:scale-105"
           >
             <div className="text-6xl mb-4">🦠</div>
