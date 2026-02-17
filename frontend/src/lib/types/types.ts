@@ -92,7 +92,7 @@ export interface BotConfig {
   // Victory Condition
   victoryCondition: VictoryCondition;
 
-  // Special Abilities (max 2)
+  // Special Abilities (max 5)
   abilities: SpecialAbility[];
 
   // Threat Pattern
