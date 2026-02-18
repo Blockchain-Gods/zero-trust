@@ -162,7 +162,7 @@ export const SPECIAL_ABILITIES: Record<
   },
   encryption: {
     name: "Heavy Encryption",
-    icon: "/abilities/heavy-encryption",
+    icon: "/abilities/heavy-encryption.png",
     description: "Requires crypto skills to cure",
     baseCost: 20,
   },

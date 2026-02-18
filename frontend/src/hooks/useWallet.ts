@@ -20,9 +20,11 @@ export interface UseWalletReturn extends WalletState {
   connectWithKit: () => void;
   generateEphemeral: () => Promise<void>;
   disconnect: () => void;
-  signTransaction: (txXdr: string) => Promise<string>;
+  signTransaction: (
+    txXdr: string,
+  ) => Promise<{ signedTxXdr: string; signerAddress?: string | undefined }>;
   refreshBalance: () => Promise<void>;
-  kitRef: React.MutableRefObject<any>;
+  kitRef: React.RefObject<any>;
   networkPassphrase: string;
 }
 
@@ -244,8 +246,60 @@ export function useWallet(): UseWalletReturn {
   }, []);
 
   // ── Unified signTransaction ────────────────────────────────────────────────
+  //   const signTransaction = useCallback(
+  //     async (txXdr: string): Promise<string> => {
+  //       const wallet = walletSourceRef.current;
+  //       if (!wallet) throw new Error("No wallet connected");
+
+  //       if (wallet === "ephemeral") {
+  //         // Read secret from state via functional update to avoid stale closure
+  //         return new Promise((resolve, reject) => {
+  //           setState((prev) => {
+  //             if (!prev.wallet?.secretKey) {
+  //               reject(new Error("Missing secret key"));
+  //               return prev;
+  //             }
+  //             import("@stellar/stellar-sdk").then((StellarSdk) => {
+  //               try {
+  //                 const keypair = StellarSdk.Keypair.fromSecret(
+  //                   prev.wallet!.secretKey!,
+  //                 );
+  //                 const tx = StellarSdk.TransactionBuilder.fromXDR(
+  //                   txXdr,
+  //                   NETWORK_PASSPHRASE,
+  //                 );
+  //                 tx.sign(keypair);
+  //                 resolve(tx.toXDR());
+  //               } catch (err) {
+  //                 reject(err);
+  //               }
+  //             });
+  //             return prev;
+  //           });
+  //         });
+  //       }
+
+  //       if (!kitRef.current) throw new Error("Wallet kit not initialized");
+  //       const { signedTxXdr } = await kitRef.current.signTransaction(txXdr, {
+  //         networkPassphrase: NETWORK_PASSPHRASE,
+  //         address: prevAddressRef.current,
+  //       });
+  //       return signedTxXdr;
+  //     },
+  //     [],
+  //   );
+
+  // ── Unified signTransaction ────────────────────────────────────────────────
   const signTransaction = useCallback(
-    async (txXdr: string): Promise<string> => {
+    async (
+      txXdr: string,
+      opts?: {
+        networkPassphrase?: string;
+        address?: string;
+        submit?: boolean;
+        submitUrl?: string;
+      },
+    ): Promise<{ signedTxXdr: string; signerAddress?: string }> => {
       const wallet = walletSourceRef.current;
       if (!wallet) throw new Error("No wallet connected");
 
@@ -264,10 +318,13 @@ export function useWallet(): UseWalletReturn {
                 );
                 const tx = StellarSdk.TransactionBuilder.fromXDR(
                   txXdr,
-                  NETWORK_PASSPHRASE,
+                  opts?.networkPassphrase || NETWORK_PASSPHRASE,
                 );
                 tx.sign(keypair);
-                resolve(tx.toXDR());
+                resolve({
+                  signedTxXdr: tx.toXDR(),
+                  signerAddress: keypair.publicKey(),
+                });
               } catch (err) {
                 reject(err);
               }
@@ -278,15 +335,18 @@ export function useWallet(): UseWalletReturn {
       }
 
       if (!kitRef.current) throw new Error("Wallet kit not initialized");
-      const { signedTxXdr } = await kitRef.current.signTransaction(txXdr, {
-        networkPassphrase: NETWORK_PASSPHRASE,
-        address: prevAddressRef.current,
+      const result = await kitRef.current.signTransaction(txXdr, {
+        networkPassphrase: opts?.networkPassphrase || NETWORK_PASSPHRASE,
+        address: opts?.address || prevAddressRef.current,
       });
-      return signedTxXdr;
+
+      return {
+        signedTxXdr: result.signedTxXdr,
+        signerAddress: result.signerAddress,
+      };
     },
     [],
   );
-
   // ── Refresh balance ────────────────────────────────────────────────────────
   const refreshBalance = useCallback(async () => {
     const publicKey = prevAddressRef.current;
