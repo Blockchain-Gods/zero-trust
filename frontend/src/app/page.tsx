@@ -1,9 +1,17 @@
 "use client";
 
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useBotSync } from "@/hooks/useBotSync";
 
 export default function HomePage() {
   const router = useRouter();
+  const { sync, isSyncing, totalFetched, lastSyncedAt } = useBotSync();
+
+  // Background sync on mount — respects TTL so won't hammer the chain
+  useEffect(() => {
+    void sync();
+  }, [sync]);
 
   return (
     <div className="min-h-screen bg-linear-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-8">
@@ -17,13 +25,29 @@ export default function HomePage() {
           <p className="text-gray-400">
             Design attack bots or defend systems in this cybersecurity game
           </p>
+
+          {/* Sync status — subtle, non-blocking */}
+          <div className="mt-3 h-4 flex items-center justify-center gap-2 text-xs text-slate-500">
+            {isSyncing && (
+              <>
+                <span className="animate-spin">↻</span>
+                <span>Syncing bots from chain…</span>
+              </>
+            )}
+            {!isSyncing && lastSyncedAt !== null && (
+              <span>
+                {totalFetched} bot{totalFetched !== 1 ? "s" : ""} synced ·{" "}
+                {new Date(lastSyncedAt).toLocaleTimeString()}
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Main Actions */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           {/* Hacker Mode */}
           <button
-            onClick={() => router.push("/bot-creator2")}
+            onClick={() => router.push("/bot-creator")}
             className="group bg-slate-800 rounded-xl p-8 border-2 border-red-500/50 hover:border-red-500 transition transform hover:scale-105"
           >
             <div className="text-6xl mb-4">🦠</div>
@@ -41,10 +65,7 @@ export default function HomePage() {
             onClick={() => router.push("/defense")}
             className="group bg-slate-800 rounded-xl p-8 border-2 border-blue-500/50 hover:border-blue-500 transition transform hover:scale-105 relative overflow-hidden"
           >
-            <div className="absolute top-4 right-4 bg-yellow-500 text-xs font-bold px-3 py-1 rounded-full text-black">
-              COMING SOON
-            </div>
-            <div className="text-6xl mb-4">🛡️</div>
+            <div className="text-4xl mb-4">🛡️</div>
             <h2 className="text-2xl font-bold text-white mb-2">
               Defender Mode
             </h2>

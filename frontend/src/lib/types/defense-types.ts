@@ -1,6 +1,7 @@
 // Defense game specific types
 
-import { SystemTargetId, SkillId } from "./types/types";
+import { DeployedBot } from "../storage";
+import { SystemTargetIdTag, SkillId, BotTypeTag, SavedBot } from "./types";
 
 export interface Skill {
   id: SkillId;
@@ -12,7 +13,7 @@ export interface Threat {
   id: string;
   spawnTime: number;
   target: {
-    id: SystemTargetId;
+    id: SystemTargetIdTag;
     name: string;
     icon: string;
   };
@@ -60,3 +61,23 @@ export interface DefenseReplay {
   startTimestamp: number;
   actions: DefenseAction[];
 }
+
+const BOT_TYPE_DISPLAY: Record<BotTypeTag, string> = {
+  malware: "malware",
+  trojan: "trojan",
+  ransomware: "ransomware",
+  worm: "worm",
+  rootkit: "rootkit",
+  spyware: "spyware",
+  botnet: "botnet-agent",
+  logicbomb: "logic-bomb",
+};
+
+// export function normaliseBotTypes(
+//   bots: (SavedBot | DeployedBot)[],
+// ): (SavedBot | DeployedBot)[] {
+//   return bots.map((bot) => ({
+//     ...bot,
+//     botType: BOT_TYPE_DISPLAY[bot.botType] ?? bot.botType,
+//   }));
+// }

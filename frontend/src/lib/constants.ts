@@ -1,13 +1,16 @@
 import {
-  BotType,
-  SystemTargetId,
-  ResourceAttackType,
-  VictoryCondition,
-  SpecialAbility,
-} from "./types/types";
+  SystemTargetIdTag,
+  ResourceAttackTypeTag,
+  VictoryConditionTag,
+  SpecialAbilityTag,
+  TagOf,
+  BotTypeTag,
+} from "@/lib/types/types";
+
+export const BOTS_VERSION = 1;
 
 export const BOT_TYPES: Record<
-  BotType,
+  BotTypeTag,
   {
     name: string;
     icon: string;
@@ -15,7 +18,8 @@ export const BOT_TYPES: Record<
     loopInterval: number; // seconds - how often abilities repeat
     baseTokens: number; // starting budget
     damageMultiplier: number;
-    specialAbilityDiscount: SpecialAbility | null; // which ability is cheaper
+    victoryCondition: VictoryConditionTag;
+    specialAbilityDiscount: SpecialAbilityTag | null; // which ability is cheaper
   }
 > = {
   malware: {
@@ -25,6 +29,7 @@ export const BOT_TYPES: Record<
     loopInterval: 90,
     baseTokens: 100,
     damageMultiplier: 1.0,
+    victoryCondition: "system_destruction",
     specialAbilityDiscount: null,
   },
   trojan: {
@@ -34,6 +39,7 @@ export const BOT_TYPES: Record<
     loopInterval: 90,
     baseTokens: 105,
     damageMultiplier: 0.9,
+    victoryCondition: "data_exfiltration",
     specialAbilityDiscount: "stealth",
   },
   ransomware: {
@@ -43,6 +49,7 @@ export const BOT_TYPES: Record<
     loopInterval: 90,
     baseTokens: 80,
     damageMultiplier: 1.5,
+    victoryCondition: "system_destruction",
     specialAbilityDiscount: "encryption",
   },
   worm: {
@@ -52,6 +59,7 @@ export const BOT_TYPES: Record<
     loopInterval: 60, // FASTER loops!
     baseTokens: 110,
     damageMultiplier: 0.8,
+    victoryCondition: "time_survival",
     specialAbilityDiscount: "replication",
   },
   rootkit: {
@@ -61,6 +69,7 @@ export const BOT_TYPES: Record<
     loopInterval: 90,
     baseTokens: 100,
     damageMultiplier: 1.0,
+    victoryCondition: "time_survival",
     specialAbilityDiscount: "stealth",
   },
   spyware: {
@@ -70,6 +79,7 @@ export const BOT_TYPES: Record<
     loopInterval: 120, // SLOWER loops but persistent
     baseTokens: 90,
     damageMultiplier: 0.7,
+    victoryCondition: "data_exfiltration",
     specialAbilityDiscount: "persistence",
   },
   botnet: {
@@ -79,6 +89,7 @@ export const BOT_TYPES: Record<
     loopInterval: 75,
     baseTokens: 95,
     damageMultiplier: 1.1,
+    victoryCondition: "time_survival",
     specialAbilityDiscount: "replication",
   },
   logicbomb: {
@@ -88,12 +99,13 @@ export const BOT_TYPES: Record<
     loopInterval: 120, // NO LOOP - one-time only!
     baseTokens: 90,
     damageMultiplier: 2.0,
+    victoryCondition: "system_destruction",
     specialAbilityDiscount: null,
   },
 };
 
 export const SYSTEM_TARGETS: Record<
-  SystemTargetId,
+  SystemTargetIdTag,
   { name: string; icon: string }
 > = {
   compute: { name: "Compute Nodes", icon: "🖥️" },
@@ -110,7 +122,7 @@ export const SYSTEM_TARGETS: Record<
 };
 
 export const RESOURCE_ATTACKS: Record<
-  ResourceAttackType,
+  ResourceAttackTypeTag,
   { name: string; icon: string }
 > = {
   cpu: { name: "CPU Exhaustion", icon: "⚡" },
@@ -121,7 +133,7 @@ export const RESOURCE_ATTACKS: Record<
 };
 
 export const VICTORY_CONDITIONS: Record<
-  VictoryCondition,
+  VictoryConditionTag,
   { name: string; description: string }
 > = {
   time_survival: {
@@ -139,7 +151,7 @@ export const VICTORY_CONDITIONS: Record<
 };
 
 export const SPECIAL_ABILITIES: Record<
-  SpecialAbility,
+  SpecialAbilityTag,
   { name: string; icon: string; description: string; baseCost: number }
 > = {
   stealth: {

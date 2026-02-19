@@ -8,9 +8,14 @@ import {
   DragOverlay,
   useDraggable,
 } from "@dnd-kit/core";
-import { BotConfig, BotType, SpecialAbility } from "@/lib/types/types";
-import { BOT_TYPES, SPECIAL_ABILITIES } from "@/lib/constants";
-import { saveBotToLocalStorage, saveDeployedBot } from "@/lib/storage";
+import {
+  BotConfigFE,
+  BotTypeTag,
+  SpecialAbilityTag,
+  TagOf,
+} from "@/lib/types/types";
+import { BOT_TYPES, BOTS_VERSION, SPECIAL_ABILITIES } from "@/lib/constants";
+import { saveDeployedBot } from "@/lib/storage";
 import { VideoTimeline, TimelineEvent } from "@/components/timeline-component";
 import {
   SpawnCurveChart,
@@ -33,7 +38,7 @@ import { Progress } from "@/components/ui/progress";
 
 interface BotCreatorState {
   botName: string;
-  botType: BotType | null;
+  botType: BotTypeTag | null;
   timeline: TimelineEvent[];
 }
 
@@ -97,7 +102,7 @@ export default function BotCreatorFinalPage() {
     }
     // Drop new ability on timeline
     else if (dragData?.type === "ability" && dropData?.type === "timeline") {
-      const abilityId = dragData.abilityId as SpecialAbility;
+      const abilityId = dragData.abilityId as SpecialAbilityTag;
       const ability = SPECIAL_ABILITIES[abilityId];
 
       const isDiscounted = botConfig?.specialAbilityDiscount === abilityId;
@@ -131,18 +136,19 @@ export default function BotCreatorFinalPage() {
   };
 
   const handleDeploy = async () => {
-    const fullConfig: BotConfig = {
+    const fullConfig: BotConfigFE = {
       botName: state.botName || "Unnamed Bot",
       botType: state.botType || "malware",
       primaryTarget: "compute",
       secondaryTargets: [],
       resourceAttack: "cpu",
       damageMultiplier: botConfig?.damageMultiplier || 1.0,
-      victoryCondition: "time_survival",
+      victoryCondition: botConfig?.victoryCondition || "time_survival",
       abilities: [...new Set(state.timeline.map((e) => e.ability))], // unique abilities
       threatCount: state.timeline.length + 2,
       spawnPattern: "steady",
       skillDiversity: "medium",
+      version: BOTS_VERSION,
       // creatorName: "Player",
     };
 
@@ -231,15 +237,16 @@ export default function BotCreatorFinalPage() {
                   <div className="grid grid-cols-2 gap-2">
                     {(
                       Object.entries(BOT_TYPES) as [
-                        BotType,
-                        (typeof BOT_TYPES)[BotType],
+                        BotTypeTag,
+                        (typeof BOT_TYPES)[BotTypeTag],
                       ][]
                     ).map(([type, info]) => (
                       <button
                         key={type}
-                        onClick={() =>
+                        onClick={() => (
+                          console.log("[bot creator pg] info: ", info),
                           setState({ ...state, botType: type, timeline: [] })
-                        }
+                        )}
                         className={`p-2 border-2 transition rounded ${
                           state.botType === type
                             ? "border-[#4ade80] bg-[#4ade80]/15"
@@ -283,12 +290,22 @@ export default function BotCreatorFinalPage() {
                         </span>
                       </div>
                       {botConfig.specialAbilityDiscount && (
-                        <div className="text-[10px] text-[#4ade80] mt-2 p-2 bg-[#4ade80]/10 rounded">
-                          💰{" "}
-                          {
-                            SPECIAL_ABILITIES[botConfig.specialAbilityDiscount]
-                              .icon
-                          }{" "}
+                        <div className="text-xs text-[#4ade80] flex items-center gap-2 mt-2 p-2 bg-[#4ade80]/10 rounded">
+                          <Image
+                            src={
+                              SPECIAL_ABILITIES[
+                                botConfig.specialAbilityDiscount
+                              ].icon
+                            }
+                            alt={
+                              SPECIAL_ABILITIES[
+                                botConfig.specialAbilityDiscount
+                              ].name
+                            }
+                            width={30}
+                            height={30}
+                            className="mb-2"
+                          />{" "}
                           -30% cost
                         </div>
                       )}
@@ -301,8 +318,8 @@ export default function BotCreatorFinalPage() {
                   <div className="space-y-2 max-h-100 overflow-y-auto">
                     {(
                       Object.entries(SPECIAL_ABILITIES) as [
-                        SpecialAbility,
-                        (typeof SPECIAL_ABILITIES)[SpecialAbility],
+                        SpecialAbilityTag,
+                        (typeof SPECIAL_ABILITIES)[SpecialAbilityTag],
                       ][]
                     ).map(([abilityId, info]) => {
                       const isDiscounted =
@@ -624,8 +641,8 @@ function DraggableAbility({
   isDiscounted,
   canAfford,
 }: {
-  abilityId: SpecialAbility;
-  info: (typeof SPECIAL_ABILITIES)[SpecialAbility];
+  abilityId: SpecialAbilityTag;
+  info: (typeof SPECIAL_ABILITIES)[SpecialAbilityTag];
   cost: number;
   isDiscounted: boolean;
   canAfford: boolean;

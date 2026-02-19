@@ -1,7 +1,7 @@
-import { BotConfig } from "./types/types";
-import { Threat, Developer, Skill } from "./defense-types";
+import { Threat, Developer, Skill } from "./types/defense-types";
 import { SYSTEM_TARGETS } from "./constants";
 import seedrandom from "seedrandom";
+import { BotConfigFE } from "./types/types";
 
 export const SKILL_POOL: Skill[] = [
   { id: "python", name: "Python", icon: "🐍" },
@@ -139,7 +139,7 @@ export const FIXED_DEVELOPER_POOL: Developer[] = [
 ];
 
 export function generateThreatsFromBot(
-  botConfig: BotConfig,
+  botConfig: BotConfigFE,
   seed: string,
 ): Threat[] {
   const threats: Threat[] = [];
@@ -199,7 +199,7 @@ function getSpawnInterval(
 }
 
 function getRequiredSkills(
-  botConfig: BotConfig,
+  botConfig: BotConfigFE,
   rng: seedrandom.PRNG,
 ): Skill[] {
   const skillCount =

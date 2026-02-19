@@ -4,7 +4,7 @@ import { useState, useCallback } from "react";
 import { Client as BotNFTClient } from "@/contracts/bot_nft";
 import { networks } from "@/contracts/bot_nft";
 import { useWallet } from "./useWallet";
-import type { BotConfig } from "@/lib/types/types";
+import type { BotConfigFE } from "@/lib/types/types";
 import type {
   BotConfig as ContractBotConfig,
   BotType as ContractBotType,
@@ -121,7 +121,7 @@ function transformSkillDiversity(diversity: string): ContractSkillDiversity {
   } as ContractSkillDiversity;
 }
 
-function transformBotConfig(config: BotConfig): ContractBotConfig {
+function transformBotConfig(config: BotConfigFE): ContractBotConfig {
   return {
     version: 1,
     bot_name: config.botName,
@@ -164,7 +164,7 @@ export function useDeployBot() {
   });
 
   const deployBot = useCallback(
-    async (config: BotConfig): Promise<number | null> => {
+    async (config: BotConfigFE): Promise<number | null> => {
       if (!wallet) {
         setState((prev) => ({ ...prev, error: "No wallet connected" }));
         return null;
@@ -177,11 +177,13 @@ export function useDeployBot() {
         error: null,
       });
 
+      // console.log("[useDeployBot] deployBot: ", state);
+
       try {
-        console.log(
-          "[useDeployBot] Starting deployment for wallet:",
-          wallet.publicKey,
-        );
+        // console.log(
+        //   "[useDeployBot] Starting deployment for wallet:",
+        //   wallet.publicKey,
+        // );
 
         // Initialize contract client
         const client = new BotNFTClient({
@@ -198,16 +200,18 @@ export function useDeployBot() {
 
         // Transform config
         const contractConfig = transformBotConfig(config);
+
+        console.log("[useDeployBot] default config:", config);
         console.log("[useDeployBot] Transformed config:", contractConfig);
 
         // Build and sign transaction using the contract client
-        console.log("[useDeployBot] Calling deploy_bot");
+        // console.log("[useDeployBot] Calling deploy_bot");
         const tx = await client.deploy_bot({
           owner: wallet.publicKey,
           bot_config: contractConfig,
         });
 
-        console.log("[useDeployBot] Signing and sending transaction");
+        // console.log("[useDeployBot] Signing and sending transaction");
         const { result } = await tx.signAndSend();
 
         const tokenId = result as number;
@@ -216,13 +220,13 @@ export function useDeployBot() {
         let txHash = "";
         try {
           if (tx.built) {
-            console.log("[useDeployBot] tx built details", tx.built);
+            // console.log("[useDeployBot] tx built details", tx.built);
           }
         } catch (err) {
           console.warn("[useDeployBot] Could not extract tx hash:", err);
         }
 
-        console.log("[useDeployBot] Success! TokenId:", tokenId);
+        // console.log("[useDeployBot] Success! TokenId:", tokenId);
 
         setState({
           isDeploying: false,

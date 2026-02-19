@@ -1,4 +1,5 @@
-import { BotConfig, SavedBot } from "./types/types";
+import { BotConfigFE, SavedBot } from "@/lib/types/types";
+// import { normaliseBotTypes } from "./types/defense-types";
 
 const STORAGE_KEY = "cyberdefense_bots";
 
@@ -9,42 +10,42 @@ export interface DeployedBot extends SavedBot {
   isOnChain: true;
 }
 
-export function saveBotToLocalStorage(bot: BotConfig): SavedBot {
-  const savedBot: SavedBot = {
-    ...bot,
-    id: bot.id || generateId(),
-    createdAt: bot.createdAt || new Date().toISOString(),
-    creatorName: bot.creatorName || "Anonymous",
-    timesPlayed: 0,
-    avgDamageDealt: 0,
-  };
+// export function saveBotToLocalStorage(bot: BotConfigFE): SavedBot {
+//   const savedBot: SavedBot = {
+//     ...bot,
+//     id: bot.id || generateId(),
+//     createdAt: bot.createdAt || new Date().toISOString(),
+//     creatorName: bot.creatorName || "Anonymous",
+//     timesPlayed: 0,
+//     avgDamageDealt: 0,
+//   };
 
-  const bots = getAllBots();
-  const existingIndex = bots.findIndex((b) => b.id === savedBot.id);
+//   const bots = getAllBots();
+//   const existingIndex = bots.findIndex((b) => b.id === savedBot.id);
 
-  if (existingIndex >= 0) {
-    bots[existingIndex] = savedBot;
-  } else {
-    bots.push(savedBot);
-  }
+//   if (existingIndex >= 0) {
+//     bots[existingIndex] = savedBot;
+//   } else {
+//     bots.push(savedBot);
+//   }
 
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(bots));
-  return savedBot;
-}
+//   localStorage.setItem(STORAGE_KEY, JSON.stringify(bots));
+//   return savedBot;
+// }
 
 /**
  * Save a blockchain-deployed bot to localStorage
  */
 export function saveDeployedBot(
-  bot: BotConfig,
+  bot: BotConfigFE,
   tokenId: number,
   txHash?: string,
 ): DeployedBot {
   const deployedBot: DeployedBot = {
     ...bot,
     id: `token_${tokenId}`,
-    createdAt: bot.createdAt || new Date().toISOString(),
-    creatorName: bot.creatorName || "Anonymous",
+    createdAt: new Date().toISOString(),
+    creatorName: "Anonymous",
     timesPlayed: 0,
     avgDamageDealt: 0,
     tokenId,
@@ -72,8 +73,10 @@ export function getAllBots(): (SavedBot | DeployedBot)[] {
   const stored = localStorage.getItem(STORAGE_KEY);
   if (!stored) return [];
 
+  const parsedStored: (SavedBot | DeployedBot)[] = JSON.parse(stored);
+
   try {
-    return JSON.parse(stored);
+    return parsedStored;
   } catch {
     return [];
   }
@@ -81,6 +84,8 @@ export function getAllBots(): (SavedBot | DeployedBot)[] {
 
 export function getBotById(id: string): SavedBot | DeployedBot | null {
   const bots = getAllBots();
+
+  // console.log("[Storage] bots: ", bots);
   return bots.find((b) => b.id === id) || null;
 }
 
@@ -102,10 +107,12 @@ export function updateBotStats(id: string, damageDealt: number): void {
   const bot = bots.find((b) => b.id === id);
 
   if (bot) {
-    bot.timesPlayed += 1;
-    bot.avgDamageDealt =
-      (bot.avgDamageDealt * (bot.timesPlayed - 1) + damageDealt) /
-      bot.timesPlayed;
+    const prevAvg = bot.avgDamageDealt ?? 0;
+    const prevPlayed = bot.timesPlayed ?? 0;
+
+    bot.timesPlayed = prevPlayed + 1;
+    bot.avgDamageDealt = bot.avgDamageDealt =
+      (prevAvg * prevPlayed + damageDealt) / bot.timesPlayed;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(bots));
   }
 }

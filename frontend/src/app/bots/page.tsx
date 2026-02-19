@@ -21,8 +21,8 @@ export default function BotsPage() {
     setBots(loadedBots);
   };
 
-  const handleDelete = (id: string) => {
-    if (confirm("Are you sure you want to delete this bot?")) {
+  const handleDelete = (id: string | undefined) => {
+    if (id && confirm("Are you sure you want to delete this bot?")) {
       deleteBot(id);
       loadBots();
       if (selectedBot?.id === id) {
@@ -162,7 +162,7 @@ function BotCard({
         </div>
         <div>
           <div className="text-2xl font-bold text-purple-400">
-            {bot.avgDamageDealt.toFixed(0)}%
+            {bot.avgDamageDealt ? bot.avgDamageDealt.toFixed(0) : 0}%
           </div>
           <div className="text-xs text-gray-400">Avg Damage</div>
         </div>
@@ -176,7 +176,8 @@ function BotCard({
 
       <div className="mt-4 pt-4 border-t border-gray-700">
         <div className="text-xs text-gray-500">
-          Created {new Date(bot.createdAt).toLocaleDateString()}
+          Created{" "}
+          {bot.createdAt ? new Date(bot.createdAt).toLocaleDateString() : "N/A"}
         </div>
       </div>
     </div>
@@ -327,7 +328,7 @@ function BotDetails({ bot }: { bot: SavedBot }) {
             <div className="flex justify-between">
               <span className="text-gray-400">Average Damage</span>
               <span className="text-purple-400 font-medium">
-                {bot.avgDamageDealt.toFixed(1)}%
+                {bot.avgDamageDealt ? bot.avgDamageDealt.toFixed(1) : 0}%
               </span>
             </div>
           </div>

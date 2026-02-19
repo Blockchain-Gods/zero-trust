@@ -1,7 +1,7 @@
 "use client";
 
 import { useDraggable, useDroppable } from "@dnd-kit/core";
-import { SpecialAbility } from "@/lib/types/types";
+import { SpecialAbilityTag } from "@/lib/types/types";
 import { SPECIAL_ABILITIES } from "@/lib/constants";
 import {
   Tooltip,
@@ -14,7 +14,7 @@ import Image from "next/image";
 
 export interface TimelineEvent {
   id: string;
-  ability: SpecialAbility;
+  ability: SpecialAbilityTag;
   startTime: number; // seconds
   duration: number; // seconds (5, 10, 15, etc)
   cost: number;
@@ -41,7 +41,7 @@ export function VideoTimeline({
   const timelineWidth = maxTime * pixelsPerSecond;
 
   // Group events by ability type (for tracks)
-  const tracks: Record<SpecialAbility, TimelineEvent[]> = {} as any;
+  const tracks: Record<SpecialAbilityTag, TimelineEvent[]> = {} as any;
   events.forEach((event) => {
     if (!tracks[event.ability]) tracks[event.ability] = [];
     tracks[event.ability].push(event);
@@ -98,9 +98,9 @@ export function VideoTimeline({
           {Object.entries(SPECIAL_ABILITIES).map(([abilityId, info]) => (
             <TimelineTrack
               key={abilityId}
-              ability={abilityId as SpecialAbility}
+              ability={abilityId as SpecialAbilityTag}
               abilityInfo={info}
-              events={tracks[abilityId as SpecialAbility] || []}
+              events={tracks[abilityId as SpecialAbilityTag] || []}
               onRemoveEvent={onRemoveEvent}
               pixelsPerSecond={pixelsPerSecond}
               maxTime={maxTime}
@@ -134,8 +134,8 @@ function TimelineTrack({
   pixelsPerSecond,
   maxTime,
 }: {
-  ability: SpecialAbility;
-  abilityInfo: (typeof SPECIAL_ABILITIES)[SpecialAbility];
+  ability: SpecialAbilityTag;
+  abilityInfo: (typeof SPECIAL_ABILITIES)[SpecialAbilityTag];
   events: TimelineEvent[];
   onRemoveEvent: (id: string) => void;
   pixelsPerSecond: number;
@@ -195,7 +195,7 @@ function TimelineDropZone({
   timestamp,
   pixelsPerSecond,
 }: {
-  ability: SpecialAbility;
+  ability: SpecialAbilityTag;
   timestamp: number;
   pixelsPerSecond: number;
 }) {
@@ -225,7 +225,7 @@ function TimelineEventBlock({
   pixelsPerSecond,
 }: {
   event: TimelineEvent;
-  abilityInfo: (typeof SPECIAL_ABILITIES)[SpecialAbility];
+  abilityInfo: (typeof SPECIAL_ABILITIES)[SpecialAbilityTag];
   onRemove: () => void;
   pixelsPerSecond: number;
 }) {
@@ -234,7 +234,7 @@ function TimelineEventBlock({
     data: { type: "timeline-event", event },
   });
 
-  const colorMap: Record<SpecialAbility, string> = {
+  const colorMap: Record<SpecialAbilityTag, string> = {
     stealth: "from-purple-300/30 to-purple-400/30",
     mutation: "from-green-300/30 to-green-400/30",
     replication: "from-blue-300/30 to-blue-400/30",
