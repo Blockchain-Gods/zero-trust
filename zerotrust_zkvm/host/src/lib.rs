@@ -317,6 +317,12 @@ fn normalise_tag_hyphen(s: &str) -> String {
 // ─── Core prove function ──────────────────────────────────────────────────────
 
 pub fn prove_game(input: &ProveInput) -> Result<ProveResult> {
+        log::info!("Starting proof generation for bot_config_id={} player={}", 
+        input.bot_config_id,
+        hex::encode(&input.player_pubkey[..4]) // first 4 bytes for brevity
+    );
+
+
     let env = ExecutorEnv::builder()
         // Public inputs
         .write(&input.challenge_id)?
@@ -327,11 +333,17 @@ pub fn prove_game(input: &ProveInput) -> Result<ProveResult> {
         .write(&input.action_log)?
         .build()?;
 
+          log::info!("Executor environment built, starting prover...");
+
     let prover = default_prover();
     let (opts, require_groth16) = prover_opts_from_env();
-    let prove_info = prover.prove_with_opts(env, GUEST_ZEROTRUST_ZKVM_ELF, &opts)?;
-    prove_info.receipt.verify(GUEST_ZEROTRUST_ZKVM_ID)?;
 
+    let prove_info = prover.prove_with_opts(env, GUEST_ZEROTRUST_ZKVM_ELF, &opts)?;
+    
+    log::info!("Proof generated, verifying...");
+    prove_info.receipt.verify(GUEST_ZEROTRUST_ZKVM_ID)?;
+ log::info!("Receipt verified successfully");
+ 
     let receipt = prove_info.receipt;
 
     if require_groth16 && !matches!(&receipt.inner, InnerReceipt::Groth16(_)) {

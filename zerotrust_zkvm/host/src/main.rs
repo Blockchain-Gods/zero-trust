@@ -183,6 +183,9 @@ async fn prove(req: web::Json<ProveRequest>) -> Result<HttpResponse> {
         }
     };
 
+    log::info!("Fetched bot config: {:?}", bot_config);
+
+
     // ── Build prove input ─────────────────────────────────────────────────────
     let input = ProveInput {
         challenge_id,
@@ -192,11 +195,15 @@ async fn prove(req: web::Json<ProveRequest>) -> Result<HttpResponse> {
         action_log: req.action_log.clone(),
     };
 
+    log::info!("Submitting to prover thread pool...");
     // ── Prove (blocking — spawn on thread pool) ───────────────────────────────
     let prove_result = match actix_web::web::block(move || prove_game(&input)).await {
-        Ok(Ok(r)) => r,
-        Ok(Err(e)) => return Ok(error_response(format!("proof generation failed: {}", e), start)),
-        Err(e) => return Ok(error_response(format!("thread pool error: {}", e), start)),
+        Ok(Ok(r)) => {
+        log::info!("Proof complete in {}ms", start.elapsed().as_millis());
+        r
+    },
+    Ok(Err(e)) => return Ok(error_response(format!("proof generation failed: {}", e), start)),
+   Err(e) => return Ok(error_response(format!("thread pool error: {}", e), start)),
     };
 
     // ── Build response ────────────────────────────────────────────────────────
