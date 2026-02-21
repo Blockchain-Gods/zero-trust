@@ -9,6 +9,13 @@ import {
 
 export const BOTS_VERSION = 1;
 
+export const ROUND_DURATION = 90;
+
+export const SYSTEM_DESTRUCTION_THRESHOLD = 3;
+export const DATA_EXFIL_THRESHOLD = 3; // count
+export const COMMIT_DURATION = 1.5; // seconds
+export const COMMIT_TICKS = COMMIT_DURATION * 10; // at 100ms interval = 15 ticks
+
 export const BOT_TYPES: Record<
   BotTypeTag,
   {
@@ -213,5 +220,26 @@ export const SKILL_DIVERSITY = {
   high: {
     name: "High Diversity",
     description: "5+ different skill types needed",
+  },
+};
+
+export const VICTORY_META: Record<
+  VictoryConditionTag,
+  { label: string; icon: string; description: string }
+> = {
+  time_survival: {
+    label: "Time Survival",
+    icon: "⏱️",
+    description: `Bot wins if it survives ${ROUND_DURATION}s`,
+  },
+  system_destruction: {
+    label: "System Destruction",
+    icon: "💀",
+    description: `Bot wins if ${SYSTEM_DESTRUCTION_THRESHOLD}+ systems are destroyed`,
+  },
+  data_exfiltration: {
+    label: "Data Exfiltration",
+    icon: "📤",
+    description: "Bot wins if data bar fills completely",
   },
 };

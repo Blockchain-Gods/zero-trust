@@ -198,6 +198,7 @@ function getSpawnInterval(
   }
 }
 
+// deterministic shuffle since sort() is not considered stable
 function getRequiredSkills(
   botConfig: BotConfigFE,
   rng: seedrandom.PRNG,
@@ -209,7 +210,12 @@ function getRequiredSkills(
         ? 3
         : 4;
 
-  const shuffled = [...SKILL_POOL].sort(() => rng() - 0.5);
+  const shuffled = [...SKILL_POOL];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+
   return shuffled.slice(0, skillCount);
 }
 
@@ -265,17 +271,16 @@ export function calculateScore(
   threatsCured: number,
   threatsTotal: number,
   systemsDestroyed: number,
-  durationMs: number,
+  durationSeconds: number, // whole seconds — pass Math.floor(elapsed) from game loop
 ): number {
-  const accuracy = threatsCured / threatsTotal;
+  const accuracy = threatsTotal > 0 ? threatsCured / threatsTotal : 0;
   const accuracyBps = Math.floor(accuracy * 10000);
-
-  // Reward faster completions (baseline: 8s per threat)
-  const baselineDuration = threatsTotal * 8000;
-  const timeFactor = Math.min(2.0, baselineDuration / durationMs);
+  const baselineDuration = threatsTotal * 8; // 8s per threat
+  const timeFactor = Math.min(
+    2.0,
+    baselineDuration / Math.max(1, durationSeconds),
+  );
   const timeBonus = Math.floor(timeFactor * 100);
-
   const damagePenalty = systemsDestroyed * 50;
-
   return Math.max(0, accuracyBps + timeBonus - damagePenalty);
 }

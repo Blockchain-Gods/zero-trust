@@ -1,7 +1,13 @@
 // Defense game specific types
 
 import { DeployedBot } from "../storage";
-import { SystemTargetIdTag, SkillId, BotTypeTag, SavedBot } from "./types";
+import {
+  SystemTargetIdTag,
+  SkillId,
+  BotTypeTag,
+  SavedBot,
+  VictoryConditionTag,
+} from "./types";
 
 export interface Skill {
   id: SkillId;
@@ -81,3 +87,16 @@ const BOT_TYPE_DISPLAY: Record<BotTypeTag, string> = {
 //     botType: BOT_TYPE_DISPLAY[bot.botType] ?? bot.botType,
 //   }));
 // }
+
+export interface ThreatWithCommit extends Threat {
+  committingDevId: string | null;
+  commitProgress: number; // 0-100
+}
+
+export interface ExtendedGameState extends Omit<DefenseGameState, "threats"> {
+  threats: ThreatWithCommit[];
+  victoryCondition: VictoryConditionTag;
+  dataLeaked: number;
+  defenderWon: boolean | null;
+  endReason: string | null;
+}

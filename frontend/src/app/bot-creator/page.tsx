@@ -16,11 +16,14 @@ import {
 } from "@/lib/types/types";
 import { BOT_TYPES, BOTS_VERSION, SPECIAL_ABILITIES } from "@/lib/constants";
 import { saveDeployedBot } from "@/lib/storage";
-import { VideoTimeline, TimelineEvent } from "@/components/timeline-component";
+import {
+  VideoTimeline,
+  TimelineEvent,
+} from "@/components/bot-creator-page/timeline-component";
 import {
   SpawnCurveChart,
   DamageCurveChart,
-} from "@/components/charts-component";
+} from "@/components/bot-creator-page/charts-component";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -35,6 +38,7 @@ import { useDeployBot } from "@/hooks/useDeployBot";
 import { CheckCircle2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { slugify } from "@/lib/utils";
 
 interface BotCreatorState {
   botName: string;
@@ -254,7 +258,7 @@ export default function BotCreatorFinalPage() {
                         }`}
                       >
                         <Image
-                          src={info.icon}
+                          src={slugify(info.icon)}
                           alt={info.name}
                           width={50}
                           height={50}
@@ -361,7 +365,7 @@ export default function BotCreatorFinalPage() {
                     <div className="relative z-10 text-8xl animate-float">
                       {state.botType ? (
                         <Image
-                          src={BOT_TYPES[state.botType].icon}
+                          src={slugify(BOT_TYPES[state.botType].icon)}
                           alt={BOT_TYPES[state.botType].name}
                           width={180}
                           height={180}
