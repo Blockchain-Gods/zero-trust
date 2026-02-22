@@ -66,7 +66,7 @@ function GlowingBorderButton({
   return (
     <button
       className={cn(
-        "glowing-border-button group relative h-[44px] cursor-pointer border-0 bg-transparent p-0 text-sm font-bold outline-none",
+        "glowing-border-button group relative h-11 cursor-pointer border-0 bg-transparent p-0 text-sm font-bold outline-none",
         "disabled:opacity-40 disabled:cursor-not-allowed",
         className,
       )}
@@ -74,7 +74,7 @@ function GlowingBorderButton({
     >
       <div
         className={cn(
-          "relative h-full w-full overflow-hidden rounded-[14px] p-[2px]",
+          "relative h-full w-full overflow-hidden rounded-[14px] p-0.5",
           "transition-transform duration-200 ease-in-out",
           "group-hover:scale-[1.03] group-active:scale-[0.97]",
           "dark:bg-zinc-800 bg-zinc-200",
@@ -84,7 +84,7 @@ function GlowingBorderButton({
         <div className="absolute inset-0 overflow-hidden rounded-[14px]">
           <div
             className={cn(
-              "absolute left-1/2 top-1/2 h-[500%] w-[80px] -translate-x-1/2 -translate-y-1/2 blur-[2px]",
+              "absolute left-1/2 top-1/2 h-[500%] w-20 -translate-x-1/2 -translate-y-1/2 blur-[2px]",
               beamColor,
               spinning === true && "animate-[spin_1.2s_linear_infinite]",
               spinning === undefined &&
@@ -105,7 +105,7 @@ function GlowingBorderButton({
         {/* Inner content */}
         <div
           className={cn(
-            "relative z-10 flex h-full w-full items-center justify-center gap-2 rounded-[12px]",
+            "relative z-10 flex h-full w-full items-center justify-center gap-2 rounded-xl",
             "px-5 transition-colors duration-300 ease-in-out",
             "bg-white dark:bg-black",
             innerHover,
@@ -258,7 +258,7 @@ export function WalletButton({
                 onClick={() => setShowDropdown(false)}
                 aria-hidden="true"
               />
-              <div className="absolute right-0 top-full mt-2 z-20 min-w-[260px] rounded-xl border border-white/10 bg-black/95 backdrop-blur-md shadow-2xl overflow-hidden">
+              <div className="absolute right-0 top-full mt-2 z-20 min-w-65 rounded-xl border border-white/10 bg-black/95 backdrop-blur-md shadow-2xl overflow-hidden">
                 {/* Header */}
                 <div className="px-4 py-3 border-b border-white/5">
                   <div className="flex items-center justify-between mb-1">
@@ -360,7 +360,7 @@ export function WalletButton({
                 </span>
               </GlowingBorderButton>
             </TooltipTrigger>
-            <TooltipContent side="bottom" className="max-w-[200px] text-center">
+            <TooltipContent side="bottom" className="max-w-50 text-center">
               <p className="font-semibold mb-0.5">Have a Stellar wallet?</p>
               <p className="text-xs text-muted-foreground">
                 Connect with Freighter, xBull, or any supported Stellar wallet
@@ -395,10 +395,7 @@ export function WalletButton({
                     </span>
                   </GlowingBorderButton>
                 </TooltipTrigger>
-                <TooltipContent
-                  side="bottom"
-                  className="max-w-[200px] text-center"
-                >
+                <TooltipContent side="bottom" className="max-w-50 text-center">
                   <p className="font-semibold mb-0.5">New to Stellar?</p>
                   <p className="text-xs text-muted-foreground">
                     Instantly creates a free testnet wallet so you can try the

@@ -39,6 +39,9 @@ import DeveloperCard from "@/components/developer-page/developer-card";
 import ThreatCard from "@/components/developer-page/threat-card";
 import { useWallet } from "@/hooks/useWallet";
 import { createHash } from "crypto";
+import { useGameHub } from "@/hooks/useGameHub";
+import { useProver } from "@/hooks/useProver";
+import { StrKey } from "@stellar/stellar-sdk";
 
 // ─── Victory condition helpers ────────────────────────────────────────────────
 
@@ -75,11 +78,16 @@ export default function DefensePage() {
 
   const hasLoggedRef = useRef(false);
   const { wallet } = useWallet();
+  const pubkeyHex = wallet?.publicKey
+    ? Buffer.from(StrKey.decodeEd25519PublicKey(wallet.publicKey)).toString(
+        "hex",
+      )
+    : null;
 
   const generatedHash = createHash("sha256")
     .update(
-      wallet?.publicKey && selectedBot?.botType.toLowerCase()
-        ? wallet.publicKey.toString() + selectedBot.botType.toLowerCase()
+      pubkeyHex && selectedBot?.botType
+        ? pubkeyHex + selectedBot.botType.toLowerCase()
         : "1234",
     )
     .digest("hex");
@@ -94,6 +102,17 @@ export default function DefensePage() {
     reload,
   } = useAvailableBots();
   const { sync, isSyncing } = useBotSync();
+  const {
+    startGame: callHubStart,
+    endGame: callHubEnd,
+    sessionIdRef,
+  } = useGameHub();
+  const {
+    prove,
+    status: proverStatus,
+    error: proverError,
+    reset: resetProver,
+  } = useProver();
 
   useEffect(() => {
     sync().then(() => reload());
@@ -103,8 +122,11 @@ export default function DefensePage() {
     setSelectedBot(pickedBot);
   }, [pickedBot]);
 
-  const startGame = () => {
+  const startGame = async () => {
     if (!selectedBot) return;
+
+    resetProver();
+
     const rawThreats = generateThreatsFromBot(selectedBot as BotConfigFE, SEED);
     const threats: ThreatWithCommit[] = rawThreats.map((t) => ({
       ...t,
@@ -134,6 +156,9 @@ export default function DefensePage() {
     actionLogRef.current = [];
     openAssignmentsRef.current = new Map();
     hasLoggedRef.current = false;
+
+    // Call game hub — non-blocking, don't await
+    callHubStart(0).catch(console.error); // score=0 at start
   };
 
   // ── Game loop ────────────────────────────────────────────────────────────────
@@ -301,7 +326,7 @@ export default function DefensePage() {
         }
 
         if (defenderWon !== null) {
-          // Close all open assignments at round end
+          // Close open assignments
           const roundEndMs = Math.floor(elapsed * 1000);
           for (const [_, open] of openAssignmentsRef.current) {
             actionLogRef.current.push({
@@ -310,6 +335,9 @@ export default function DefensePage() {
             });
           }
           openAssignmentsRef.current.clear();
+
+          // Call end_game — fire and forget
+          callHubEnd(sessionIdRef.current, defenderWon).catch(console.error);
 
           setShowGameOver(true);
           return {
@@ -354,6 +382,17 @@ export default function DefensePage() {
     }
   }, [gameState?.defenderWon]);
 
+  const handleSubmitScore = async () => {
+    if (!gameState || !selectedBot) return;
+
+    const botConfig = selectedBot as BotConfigFE;
+    if (!botConfig.id) return;
+
+    const tokenId = parseInt(botConfig.id.replace("token_", ""), 10);
+    if (isNaN(tokenId)) return;
+
+    await prove(SEED, tokenId, actionLogRef.current);
+  };
   // ── Drag handler ─────────────────────────────────────────────────────────────
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -592,6 +631,9 @@ export default function DefensePage() {
             systemsDestroyed={gameState.systemsDestroyed}
             dataLeaked={gameState.dataLeaked}
             score={gameState.score}
+            proverStatus={proverStatus}
+            proverError={proverError}
+            onSubmitScore={handleSubmitScore}
             onRestart={startGame}
             onExit={() => router.push("/")}
           />
