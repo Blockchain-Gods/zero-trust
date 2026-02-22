@@ -258,7 +258,7 @@ async fn main() -> std::io::Result<()> {
             .route("/image-id", web::get().to(get_image_id))
             .route("/prove", web::post().to(prove))
     })
-    .bind("127.0.0.1:8080")?
+    .bind("0.0.0.0:8080")?
     .run()
     .await
 }
