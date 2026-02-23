@@ -44,6 +44,7 @@ import { ProofResult, useProver } from "@/hooks/useProver";
 import { StrKey } from "@stellar/stellar-sdk";
 import { useLeaderboard } from "@/hooks/useLeaderboard";
 import { ArrowLeft, ShieldCheck } from "lucide-react";
+import ThreatFlowBoard from "@/components/developer-page/threat-flow-board";
 
 function getVictoryCondition(bot: AvailableBot): VictoryConditionTag {
   const vc = (bot as BotConfigFE).victoryCondition ?? "time_survival";
@@ -426,7 +427,7 @@ export default function DefensePage() {
         className="min-h-screen bg-stone-950 text-white p-8"
         style={{ fontFamily: "'IBM Plex Mono', monospace" }}
       >
-        <div className="max-w-4xl mx-auto space-y-8">
+        <div className="max-w-7xl mx-auto space-y-8">
           <div className="flex items-start justify-between">
             <div className="space-y-2">
               <div className="text-sm text-stone-600 uppercase tracking-widest">
@@ -531,41 +532,29 @@ export default function DefensePage() {
         </div>
 
         {/* Main game area */}
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <div className="lg:col-span-2 space-y-3">
+        <div className="max-w-7xl mx-auto space-y-4">
+          <div className="space-y-3">
             <h2 className="text-base font-bold text-stone-400 uppercase tracking-widest">
               active threats
             </h2>
-            <div className="space-y-3 max-h-[calc(100vh-220px)] overflow-y-auto">
-              {activeThreats.map((threat) => {
-                const developer = gameState.developers.find(
-                  (d) =>
-                    d.id === threat.assignedDeveloperId ||
-                    d.id === threat.committingDevId,
-                );
-                return (
-                  <ThreatCard
-                    key={threat.id}
-                    threat={threat}
-                    developer={developer}
-                    isCommitting={!!threat.committingDevId}
-                    commitProgress={threat.commitProgress}
-                  />
-                );
-              })}
-              {activeThreats.length === 0 && (
-                <div className="border border-stone-800 bg-stone-900/30 p-8 text-center text-stone-600 text-sm">
-                  waiting for threats to spawn…
-                </div>
-              )}
-            </div>
+            <ThreatFlowBoard
+              selectedBot={selectedBot}
+              activeThreats={activeThreats ?? []}
+              developers={gameState.developers ?? []}
+            />
           </div>
 
+          {/* Developer pool */}
           <div className="space-y-3">
-            <h2 className="text-base font-bold text-stone-400 uppercase tracking-widest">
-              developers
-            </h2>
-            <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <h2 className="text-base font-bold text-stone-400 uppercase tracking-widest">
+                developers
+              </h2>
+              <span className="text-xs text-stone-600 tracking-widest">
+                ↑ drag a developer onto a threat node to assign
+              </span>
+            </div>
+            <div className="grid grid-cols-3 xl:grid-cols-6 gap-2">
               {gameState.developers.map((dev) => {
                 const isCommitting = gameState.threats.some(
                   (t) => t.committingDevId === dev.id,
