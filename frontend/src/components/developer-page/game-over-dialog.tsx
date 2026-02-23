@@ -45,6 +45,7 @@ interface GameOverDialogProps {
   onSubmitScore: () => void;
   onRestart: () => void;
   onExit: () => void;
+  showZkSection?: boolean;
 }
 
 export function GameOverDialog({
@@ -64,6 +65,7 @@ export function GameOverDialog({
   onSubmitScore,
   onRestart,
   onExit,
+  showZkSection = true,
 }: GameOverDialogProps) {
   const meta = VICTORY_META[victoryCondition];
   const successRate =
@@ -132,82 +134,90 @@ export function GameOverDialog({
             value={`${successRate.toFixed(0)}%`}
             color="text-amber-400"
           />
-          {journalScore !== null && (
+          {journalScore !== null ? (
             <div className="flex justify-between items-center pt-2 border-t border-stone-800">
               <span className="text-stone-500 text-sm">final score</span>
               <span className="text-2xl font-bold text-amber-400 tabular-nums">
                 {journalScore}
               </span>
             </div>
+          ) : (
+            <div className="flex justify-between items-center pt-2 border-t border-stone-800">
+              <span className="text-stone-500 text-sm">score</span>
+              <span className="text-2xl font-bold text-amber-400 tabular-nums">
+                {score}
+              </span>
+            </div>
           )}
         </div>
 
         {/* ZK Proof */}
-        <div className="border border-stone-700 bg-stone-950 p-3 space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-stone-500 uppercase tracking-widest">
-              zk verification
-            </span>
-            <ProofStatusBadge status={proverStatus} />
-          </div>
-
-          {isError && proverError && (
-            <div className="flex items-start gap-2 text-sm text-red-400">
-              <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
-              <span className="break-all">{proverError}</span>
+        {showZkSection && (
+          <div className="border border-stone-700 bg-stone-950 p-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-stone-500 uppercase tracking-widest">
+                zk verification
+              </span>
+              <ProofStatusBadge status={proverStatus} />
             </div>
-          )}
 
-          {isProved && (
-            <div className="text-sm text-green-400 space-y-1">
-              <div className="flex items-center gap-1.5">
-                <CheckCircle className="w-4 h-4" />
-                proof generated — score verified on-chain
+            {isError && proverError && (
+              <div className="flex items-start gap-2 text-sm text-red-400">
+                <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+                <span className="break-all">{proverError}</span>
               </div>
-              {personalBest?.score && (
-                <div className="text-stone-400">
-                  personal best:{" "}
-                  <span className="text-white font-bold">
-                    {personalBest.score}
-                  </span>
+            )}
+
+            {isProved && (
+              <div className="text-sm text-green-400 space-y-1">
+                <div className="flex items-center gap-1.5">
+                  <CheckCircle className="w-4 h-4" />
+                  proof generated — score verified on-chain
                 </div>
-              )}
-            </div>
-          )}
+                {personalBest?.score && (
+                  <div className="text-stone-400">
+                    personal best:{" "}
+                    <span className="text-white font-bold">
+                      {personalBest.score}
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
 
-          {proverStatus === "idle" && (
-            <Button
-              onClick={onSubmitScore}
-              className="w-full bg-amber-400 hover:bg-amber-300 text-stone-950 font-bold text-sm uppercase tracking-widest flex items-center gap-2 justify-center"
-            >
-              <Lock className="w-4 h-4" />
-              submit score with zk proof
-            </Button>
-          )}
+            {proverStatus === "idle" && (
+              <Button
+                onClick={onSubmitScore}
+                className="w-full bg-amber-400 hover:bg-amber-300 text-stone-950 font-bold text-sm uppercase tracking-widest flex items-center gap-2 justify-center"
+              >
+                <Lock className="w-4 h-4" />
+                submit score with zk proof
+              </Button>
+            )}
 
-          {isProving && (
-            <div className="flex items-center gap-2 text-sm text-stone-500">
-              <RefreshCw className="w-4 h-4 animate-spin" />
-              generating proof… this may take a minute
-            </div>
-          )}
+            {isProving && (
+              <div className="flex items-center gap-2 text-sm text-stone-500">
+                <RefreshCw className="w-4 h-4 animate-spin" />
+                generating proof… this may take a minute
+              </div>
+            )}
 
-          {isError && (
-            <Button
-              onClick={onSubmitScore}
-              variant="secondary"
-              className="w-full bg-stone-800 hover:bg-stone-700 text-white text-sm"
-            >
-              retry
-            </Button>
-          )}
-        </div>
+            {isError && (
+              <Button
+                onClick={onSubmitScore}
+                variant="secondary"
+                className="w-full bg-stone-800 hover:bg-stone-700 text-white text-sm"
+              >
+                retry
+              </Button>
+            )}
+          </div>
+        )}
 
         {/* Actions */}
         <div className="flex gap-3">
           <Button
             onClick={onRestart}
-            disabled={isProving}
             className="flex-1 flex items-center gap-2 justify-center bg-green-700 hover:bg-green-600 text-white font-bold"
           >
             <RefreshCw className="w-4 h-4" />
@@ -215,7 +225,6 @@ export function GameOverDialog({
           </Button>
           <Button
             onClick={onExit}
-            disabled={isProving}
             variant="secondary"
             className="flex-1 flex items-center gap-2 justify-center bg-stone-800 hover:bg-stone-700 text-white"
           >

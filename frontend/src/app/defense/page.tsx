@@ -589,6 +589,7 @@ export default function DefensePage() {
             onSubmitScore={handleSubmitScore}
             onRestart={startGame}
             onExit={() => router.push("/")}
+            showZkSection={false}
           />
         )}
       </div>
