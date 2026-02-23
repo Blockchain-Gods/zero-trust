@@ -42,7 +42,7 @@ import { createHash } from "crypto";
 import { useGameHub } from "@/hooks/useGameHub";
 import { ProofResult, useProver } from "@/hooks/useProver";
 import { StrKey } from "@stellar/stellar-sdk";
-import { useVerifier } from "@/hooks/useVerifier";
+import { useLeaderboard } from "@/hooks/useLeaderboard";
 
 // ─── Victory condition helpers ────────────────────────────────────────────────
 
@@ -60,7 +60,9 @@ export default function DefensePage() {
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [showGameOver, setShowGameOver] = useState(false);
   const [proofResult, setProofResult] = useState<ProofResult | null>(null);
-  const { verify } = useVerifier();
+
+  const { submitScore, fetchPersonalBest, topScores, personalBest } =
+    useLeaderboard();
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -386,15 +388,37 @@ export default function DefensePage() {
     }
   }, [gameState?.defenderWon]);
 
+  // useEffect(() => {
+  //   const handler = (e: Event) => {
+  //     const proof = (e as CustomEvent).detail as ProofResult;
+  //     setProofResult(proof);
+  //     verify(proof).catch(console.error); // auto-verify without making the user click some button
+  //   };
+  //   window.addEventListener("zk-proof-ready", handler);
+  //   return () => window.removeEventListener("zk-proof-ready", handler);
+  // }, [verify]);
+
   useEffect(() => {
-    const handler = (e: Event) => {
+    const handler = async (e: Event) => {
       const proof = (e as CustomEvent).detail as ProofResult;
       setProofResult(proof);
-      verify(proof).catch(console.error); // auto-verify without making the user click some button
+
+      const playerName = wallet?.publicKey
+        ? wallet.publicKey.slice(0, 4) + "..." + wallet.publicKey.slice(-4)
+        : "anon";
+
+      const ok = await submitScore(
+        proof,
+        playerName,
+        proof.journal.bot_config_id,
+      );
+      if (ok) {
+        await fetchPersonalBest();
+      }
     };
     window.addEventListener("zk-proof-ready", handler);
     return () => window.removeEventListener("zk-proof-ready", handler);
-  }, [verify]);
+  }, [submitScore, fetchPersonalBest, wallet?.publicKey]);
 
   const handleSubmitScore = async () => {
     if (!gameState || !selectedBot) return;
@@ -575,12 +599,12 @@ export default function DefensePage() {
               </div>
             </div>
             <VictoryConditionTracker gameState={gameState} />
-            <div className="text-right">
+            {/* <div className="text-right">
               <div className="text-xs text-gray-400">Score</div>
               <div className="text-2xl font-bold text-purple-400">
                 {gameState.score}
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
 
@@ -644,7 +668,9 @@ export default function DefensePage() {
             threatsTotal={gameState.threats.length}
             systemsDestroyed={gameState.systemsDestroyed}
             dataLeaked={gameState.dataLeaked}
+            personalBest={personalBest}
             score={gameState.score}
+            journalScore={proofResult?.journal.score ?? null}
             proverStatus={proverStatus}
             proverError={proverError}
             onSubmitScore={handleSubmitScore}

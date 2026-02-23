@@ -9,6 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { ProverStatus } from "@/hooks/useProver";
 import { VictoryConditionTag } from "@/lib/types/types";
+import { ScoreEntry } from "@/contracts/leaderboard";
 
 const VICTORY_META: Record<
   VictoryConditionTag,
@@ -29,6 +30,8 @@ interface GameOverDialogProps {
   systemsDestroyed: number;
   dataLeaked: number;
   score: number;
+  journalScore: number | null;
+  personalBest: ScoreEntry | null;
   proverStatus: ProverStatus;
   proverError: string | null;
   onSubmitScore: () => void;
@@ -46,6 +49,8 @@ export function GameOverDialog({
   systemsDestroyed,
   dataLeaked,
   score,
+  journalScore,
+  personalBest,
   proverStatus,
   proverError,
   onSubmitScore,
@@ -59,12 +64,14 @@ export function GameOverDialog({
   const isProving = proverStatus === "proving";
   const isProved = proverStatus === "success";
   const isError = proverStatus === "error";
+  console.log("[GameOverDialog] JournalScore: ", journalScore);
 
   return (
     <Dialog open={open}>
       <DialogContent
-        className="bg-slate-800 border-slate-700 text-white max-w-md"
+        className="bg-slate-800 border-slate-700 text-white max-w-md bg"
         onInteractOutside={(e: any) => e.preventDefault()}
+        showCloseButton={false}
       >
         <DialogHeader>
           <div
@@ -120,8 +127,16 @@ export function GameOverDialog({
             color="text-purple-400"
           />
           <div className="pt-3 border-t border-slate-700 flex justify-between items-center">
-            <span className="text-slate-400">Final Score</span>
-            <span className="text-3xl font-bold text-white">{score}</span>
+            {journalScore && (
+              <>
+                <span className="text-slate-400">Final Score</span>
+                <div className="text-right">
+                  <div className="text-xl font-bold text-green-400">
+                    {journalScore}
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
 
@@ -139,8 +154,16 @@ export function GameOverDialog({
           )}
 
           {isProved && (
-            <p className="text-xs text-green-400">
+            <p className="text-xs text-green-400 text-center ">
               ✓ Proof generated — score verified on-chain
+              <br />
+              {personalBest?.score ? (
+                <span className="font-bold ">
+                  Personal best: {personalBest.score}
+                </span>
+              ) : (
+                <></>
+              )}
             </p>
           )}
 

@@ -142,16 +142,19 @@ export function useProver() {
             toast.dismiss(toastIdRef.current ?? undefined);
             toast.success("ZK Proof ready!", {
               description: `Score ${data.result.journal?.score ?? "?"} verified — ready to submit on-chain`,
-              duration: 10_000,
-              action: {
-                label: "Submit Score",
-                onClick: () => {
-                  window.dispatchEvent(
-                    new CustomEvent("zk-proof-ready", { detail: data.result }),
-                  );
-                },
-              },
+              duration: 15_000,
+              //   action: {
+              //     label: "Submit Score",
+              //     onClick: () => {
+              //       window.dispatchEvent(
+              //         new CustomEvent("zk-proof-ready", { detail: data.result }),
+              //       );
+              //     },
+              //   },
             });
+            window.dispatchEvent(
+              new CustomEvent("zk-proof-ready", { detail: data.result }),
+            );
           } else if (data.status === "failed") {
             stopPolling();
             setStatus("error");

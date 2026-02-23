@@ -186,6 +186,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2af50177e190e07a26ab74f8b1efbfe2ef87da2116221318cb1c2e82baf7de06"
 
 [[package]]
+name = "blend-contract-sdk"
+version = "2.25.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cdf0e34a9219e894aa1f14b212bdad5111e7e695743b447e0290d744f083601e"
+dependencies = [
+ "soroban-sdk 25.1.1",
+]
+
+[[package]]
 name = "block-buffer"
 version = "0.10.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -840,6 +849,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "leaderboard"
+version = "0.1.0"
+dependencies = [
+ "blend-contract-sdk",
+ "sep-41-token",
+ "soroban-fixed-point-math",
+ "soroban-sdk 25.1.1",
+ "stellar-access",
+ "stellar-accounts",
+ "stellar-contract-utils",
+ "stellar-macros",
+ "stellar-tokens",
+]
+
+[[package]]
 name = "libc"
 version = "0.2.182"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1081,6 +1105,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b39cdef0fa800fc44525c84ccb54a029961a8215f9619753635a9c0d2538d46d"
 
 [[package]]
+name = "ryu"
+version = "1.0.23"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9774ba4a74de5f7b1c1451ed6cd5285a32eddb5cccb8cc655a4e50009e06477f"
+
+[[package]]
 name = "schemars"
 version = "0.8.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1135,6 +1165,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d767eb0aabc880b29956c35734170f26ed551a859dbd361d140cdbeca61ab1e2"
 
 [[package]]
+name = "sep-41-token"
+version = "1.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7c716d354c687e254c5b0500f3cc962f8d231799c901a41ea6821c977cb89a25"
+dependencies = [
+ "soroban-sdk 25.1.1",
+]
+
+[[package]]
 name = "serde"
 version = "1.0.228"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1142,6 +1181,16 @@ checksum = "9a8e94ea7f378bd32cbbd37198a4a91436180c5bb472411e48b5ec2e2124ae9e"
 dependencies = [
  "serde_core",
  "serde_derive",
+]
+
+[[package]]
+name = "serde-json-core"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5b81787e655bd59cecadc91f7b6b8651330b2be6c33246039a65e5cd6f4e0828"
+dependencies = [
+ "ryu",
+ "serde",
 ]
 
 [[package]]
@@ -1436,6 +1485,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "soroban-fixed-point-math"
+version = "1.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "671e84e393a03992963c8763f8f5d8998c99e5079e03a56ab23e5dd9f7d99db5"
+dependencies = [
+ "soroban-sdk 25.1.1",
+]
+
+[[package]]
 name = "soroban-ledger-snapshot"
 version = "25.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1628,6 +1686,26 @@ name = "static_assertions"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a2eb9349b6444b326872e140eb1cf5e7c522154d69e7a0ffb0fb81c06b37543f"
+
+[[package]]
+name = "stellar-access"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "974e461afe1538ee54dc9314ed46144f393265c7625606c240760cd6a2baaadf"
+dependencies = [
+ "soroban-sdk 23.5.2",
+]
+
+[[package]]
+name = "stellar-accounts"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a8550798f7d480dee87f0339f44a042644cacef7a10f016a62b09e4a5f102349"
+dependencies = [
+ "serde",
+ "serde-json-core",
+ "soroban-sdk 23.5.2",
+]
 
 [[package]]
 name = "stellar-contract-utils"
