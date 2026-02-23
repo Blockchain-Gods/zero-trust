@@ -106,11 +106,13 @@ const ChartTooltip = RechartsPrimitive.Tooltip;
 
 function ChartTooltipContent({
   active,
+  // @ts-ignore
   payload,
   className,
   indicator = "dot",
   hideLabel = false,
   hideIndicator = false,
+  // @ts-ignore
   label,
   labelFormatter,
   labelClassName,
@@ -259,12 +261,13 @@ function ChartLegendContent({
   verticalAlign = "bottom",
   nameKey,
 }: React.ComponentProps<"div"> &
+  //@ts-ignore
   Pick<RechartsPrimitive.LegendProps, "payload" | "verticalAlign"> & {
     hideIcon?: boolean;
     nameKey?: string;
   }) {
   const { config } = useChart();
-
+  //@ts-ignore
   if (!payload?.length) {
     return null;
   }
@@ -278,6 +281,7 @@ function ChartLegendContent({
       )}
     >
       {payload
+        //@ts-ignore
         .filter((item: any) => item.type !== "none")
         .map((item: any) => {
           const key = `${nameKey || item.dataKey || "value"}`;
