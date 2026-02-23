@@ -10,14 +10,22 @@ import { Button } from "@/components/ui/button";
 import { ProverStatus } from "@/hooks/useProver";
 import { VictoryConditionTag } from "@/lib/types/types";
 import { ScoreEntry } from "@/contracts/leaderboard";
+import {
+  Shield,
+  Bug,
+  ShieldCheck,
+  RefreshCw,
+  Home,
+  CheckCircle,
+  XCircle,
+  AlertTriangle,
+  Lock,
+} from "lucide-react";
 
-const VICTORY_META: Record<
-  VictoryConditionTag,
-  { label: string; icon: string }
-> = {
-  time_survival: { label: "Time Survival", icon: "⏱️" },
-  system_destruction: { label: "System Destruction", icon: "💀" },
-  data_exfiltration: { label: "Data Exfiltration", icon: "📤" },
+const VICTORY_META: Record<VictoryConditionTag, { label: string }> = {
+  time_survival: { label: "Time Survival" },
+  system_destruction: { label: "System Destruction" },
+  data_exfiltration: { label: "Data Exfiltration" },
 };
 
 interface GameOverDialogProps {
@@ -60,126 +68,127 @@ export function GameOverDialog({
   const meta = VICTORY_META[victoryCondition];
   const successRate =
     threatsTotal > 0 ? (threatsCured / threatsTotal) * 100 : 0;
-
   const isProving = proverStatus === "proving";
   const isProved = proverStatus === "success";
   const isError = proverStatus === "error";
-  console.log("[GameOverDialog] JournalScore: ", journalScore);
 
   return (
     <Dialog open={open}>
       <DialogContent
-        className="bg-slate-800 border-slate-700 text-white max-w-md bg"
+        className="bg-stone-900 border-stone-700 text-white max-w-md"
+        style={{ fontFamily: "'IBM Plex Mono', monospace" }}
         onInteractOutside={(e: any) => e.preventDefault()}
         showCloseButton={false}
       >
         <DialogHeader>
           <div
-            className={`text-center p-4 rounded-lg mb-2 ${
-              defenderWon
-                ? "bg-green-900/40 border border-green-500"
-                : "bg-red-900/40 border border-red-500"
-            }`}
+            className={`text-center p-4 border mb-2 ${defenderWon ? "border-green-500/50 bg-green-500/5" : "border-red-500/50 bg-red-500/5"}`}
           >
-            <div className="text-4xl mb-2">{defenderWon ? "🛡️" : "🦠"}</div>
+            <div className="flex justify-center mb-2">
+              {defenderWon ? (
+                <Shield className="w-10 h-10 text-green-400" />
+              ) : (
+                <Bug className="w-10 h-10 text-red-400" />
+              )}
+            </div>
             <DialogTitle
               className={`text-2xl font-bold ${defenderWon ? "text-green-400" : "text-red-400"}`}
             >
-              {defenderWon ? "Defender Wins!" : "Bot Wins!"}
+              {defenderWon ? "defender wins" : "bot wins"}
             </DialogTitle>
             {endReason && (
-              <p className="text-sm text-slate-300 mt-1">{endReason}</p>
+              <p className="text-sm text-stone-400 mt-1">{endReason}</p>
             )}
           </div>
         </DialogHeader>
 
-        {/* Victory condition context */}
-        <div className="flex items-center gap-2 text-xs text-slate-400 bg-slate-700/50 rounded px-3 py-2">
-          <span>{meta.icon}</span>
-          <span>
-            Win condition was{" "}
-            <span className="text-white font-medium">{meta.label}</span>
-          </span>
+        {/* Victory condition */}
+        <div className="flex items-center gap-2 text-sm text-stone-500 border border-stone-800 bg-stone-950 px-3 py-2">
+          <span>win condition was</span>
+          <span className="text-stone-300 font-bold">{meta.label}</span>
         </div>
 
         {/* Stats */}
-        <div className="space-y-3 py-2">
+        <div className="space-y-2 py-1">
           <StatRow
-            label="Threats Cured"
+            label="threats cured"
             value={`${threatsCured} / ${threatsTotal}`}
             color="text-green-400"
           />
           <StatRow
-            label="Systems Destroyed"
+            label="systems destroyed"
             value={String(systemsDestroyed)}
             color="text-red-400"
           />
           {victoryCondition === "data_exfiltration" && (
             <StatRow
-              label="Data Exfiltrated"
+              label="data exfiltrated"
               value={`${dataLeaked.toFixed(0)}%`}
               color="text-orange-400"
             />
           )}
           <StatRow
-            label="Success Rate"
+            label="success rate"
             value={`${successRate.toFixed(0)}%`}
-            color="text-purple-400"
+            color="text-amber-400"
           />
-          <div className="pt-3 border-t border-slate-700 flex justify-between items-center">
-            {journalScore && (
-              <>
-                <span className="text-slate-400">Final Score</span>
-                <div className="text-right">
-                  <div className="text-xl font-bold text-green-400">
-                    {journalScore}
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
+          {journalScore !== null && (
+            <div className="flex justify-between items-center pt-2 border-t border-stone-800">
+              <span className="text-stone-500 text-sm">final score</span>
+              <span className="text-2xl font-bold text-amber-400 tabular-nums">
+                {journalScore}
+              </span>
+            </div>
+          )}
         </div>
 
-        {/* ZK Proof submission */}
-        <div className="border border-slate-600 rounded-lg p-3 space-y-2">
+        {/* ZK Proof */}
+        <div className="border border-stone-700 bg-stone-950 p-3 space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-sm text-slate-400">
-              ZK Score Verification
+            <span className="text-sm text-stone-500 uppercase tracking-widest">
+              zk verification
             </span>
             <ProofStatusBadge status={proverStatus} />
           </div>
 
           {isError && proverError && (
-            <p className="text-xs text-red-400 break-all">{proverError}</p>
+            <div className="flex items-start gap-2 text-sm text-red-400">
+              <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+              <span className="break-all">{proverError}</span>
+            </div>
           )}
 
           {isProved && (
-            <p className="text-xs text-green-400 text-center ">
-              ✓ Proof generated — score verified on-chain
-              <br />
-              {personalBest?.score ? (
-                <span className="font-bold ">
-                  Personal best: {personalBest.score}
-                </span>
-              ) : (
-                <></>
+            <div className="text-sm text-green-400 space-y-1">
+              <div className="flex items-center gap-1.5">
+                <CheckCircle className="w-4 h-4" />
+                proof generated — score verified on-chain
+              </div>
+              {personalBest?.score && (
+                <div className="text-stone-400">
+                  personal best:{" "}
+                  <span className="text-white font-bold">
+                    {personalBest.score}
+                  </span>
+                </div>
               )}
-            </p>
+            </div>
           )}
 
           {proverStatus === "idle" && (
             <Button
               onClick={onSubmitScore}
-              className="w-full bg-purple-600 hover:bg-purple-500 text-white text-sm"
+              className="w-full bg-amber-400 hover:bg-amber-300 text-stone-950 font-bold text-sm uppercase tracking-widest flex items-center gap-2 justify-center"
             >
-              🔐 Submit Score with ZK Proof
+              <Lock className="w-4 h-4" />
+              submit score with zk proof
             </Button>
           )}
 
           {isProving && (
-            <div className="flex items-center gap-2 text-xs text-slate-400">
-              <span className="animate-spin">⚙️</span>
-              <span>Generating proof… this may take a minute</span>
+            <div className="flex items-center gap-2 text-sm text-stone-500">
+              <RefreshCw className="w-4 h-4 animate-spin" />
+              generating proof… this may take a minute
             </div>
           )}
 
@@ -187,29 +196,31 @@ export function GameOverDialog({
             <Button
               onClick={onSubmitScore}
               variant="secondary"
-              className="w-full bg-slate-700 hover:bg-slate-600 text-white text-sm"
+              className="w-full bg-stone-800 hover:bg-stone-700 text-white text-sm"
             >
-              Retry
+              retry
             </Button>
           )}
         </div>
 
         {/* Actions */}
-        <div className="flex gap-3 pt-2">
+        <div className="flex gap-3">
           <Button
             onClick={onRestart}
             disabled={isProving}
-            className="flex-1 bg-green-700 hover:bg-green-600 text-white"
+            className="flex-1 flex items-center gap-2 justify-center bg-green-700 hover:bg-green-600 text-white font-bold"
           >
-            Play Again
+            <RefreshCw className="w-4 h-4" />
+            play again
           </Button>
           <Button
             onClick={onExit}
             disabled={isProving}
             variant="secondary"
-            className="flex-1 bg-slate-700 hover:bg-slate-600 text-white"
+            className="flex-1 flex items-center gap-2 justify-center bg-stone-800 hover:bg-stone-700 text-white"
           >
-            Main Menu
+            <Home className="w-4 h-4" />
+            main menu
           </Button>
         </div>
       </DialogContent>
@@ -220,15 +231,28 @@ export function GameOverDialog({
 function ProofStatusBadge({ status }: { status: ProverStatus }) {
   switch (status) {
     case "idle":
-      return <span className="text-xs text-slate-500">Not submitted</span>;
+      return <span className="text-sm text-stone-600">not submitted</span>;
     case "proving":
       return (
-        <span className="text-xs text-yellow-400 animate-pulse">Proving…</span>
+        <span className="text-sm text-amber-400 animate-pulse flex items-center gap-1">
+          <RefreshCw className="w-3 h-3 animate-spin" />
+          proving…
+        </span>
       );
     case "success":
-      return <span className="text-xs text-green-400">✓ Verified</span>;
+      return (
+        <span className="text-sm text-green-400 flex items-center gap-1">
+          <CheckCircle className="w-3 h-3" />
+          verified
+        </span>
+      );
     case "error":
-      return <span className="text-xs text-red-400">✗ Failed</span>;
+      return (
+        <span className="text-sm text-red-400 flex items-center gap-1">
+          <XCircle className="w-3 h-3" />
+          failed
+        </span>
+      );
   }
 }
 
@@ -242,9 +266,11 @@ function StatRow({
   color: string;
 }) {
   return (
-    <div className="flex justify-between items-center">
-      <span className="text-slate-400">{label}</span>
-      <span className={`text-xl font-bold ${color}`}>{value}</span>
+    <div className="flex justify-between items-center border border-stone-800 bg-stone-950 px-3 py-2">
+      <span className="text-sm text-stone-500">{label}</span>
+      <span className={`text-base font-bold tabular-nums ${color}`}>
+        {value}
+      </span>
     </div>
   );
 }

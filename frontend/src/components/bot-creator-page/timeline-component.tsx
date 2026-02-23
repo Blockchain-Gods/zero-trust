@@ -9,14 +9,14 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-
+import { RefreshCw, Ban, X } from "lucide-react";
 import Image from "next/image";
 
 export interface TimelineEvent {
   id: string;
   ability: SpecialAbilityTag;
-  startTime: number; // seconds
-  duration: number; // seconds (5, 10, 15, etc)
+  startTime: number;
+  duration: number;
   cost: number;
 }
 
@@ -34,13 +34,12 @@ export function VideoTimeline({
   maxTime = 180,
 }: TimelineProps) {
   const timeMarkers = Array.from(
-    { length: Math.floor(maxTime / 5) + 1 },
+    { length: Math.floor(maxTime / 15) + 1 },
     (_, i) => i * 15,
   );
-  const pixelsPerSecond = 4; // 1 second = 4px
+  const pixelsPerSecond = 4;
   const timelineWidth = maxTime * pixelsPerSecond;
 
-  // Group events by ability type (for tracks)
   const tracks: Record<SpecialAbilityTag, TimelineEvent[]> = {} as any;
   events.forEach((event) => {
     if (!tracks[event.ability]) tracks[event.ability] = [];
@@ -50,33 +49,31 @@ export function VideoTimeline({
   return (
     <div className="relative overflow-x-clip">
       <div
-        className="relative bg-[#0d1b2a] border-2 border-[#00e5ff]/30 rounded"
+        className="relative bg-stone-950 border border-stone-800"
         style={{ width: timelineWidth, minWidth: "100%" }}
       >
-        {/* Time markers */}
-        <div className="relative left-30 h-8 border-b border-[#64748b]/30">
+        {/* Time ruler */}
+        <div className="relative h-8 border-b border-stone-800 ml-28">
           {timeMarkers.map((time) => (
             <div
               key={time}
-              className="absolute top-0 h-full border-l border-[#64748b]/30"
+              className="absolute top-0 h-full border-l border-stone-800"
               style={{ left: time * pixelsPerSecond }}
             >
-              <div className="text-[10px] text-[#94a3b8] ml-1 mt-1">
+              <span className="text-sm text-stone-600 ml-1 mt-1 inline-block">
                 {time}s
-              </div>
+              </span>
             </div>
           ))}
-
-          {/* 90s marker (main duration) */}
+          {/* 90s marker */}
           <div
-            className="absolute top-0 h-full border-l-2 border-[#fbbf24]/60"
+            className="absolute top-0 h-full border-l-2 border-amber-400/50"
             style={{ left: 90 * pixelsPerSecond }}
           >
-            <div className="text-[10px] text-[#fbbf24] font-bold ml-1 mt-1">
+            <span className="text-sm text-amber-400 font-bold ml-1 mt-1 inline-block">
               90s
-            </div>
+            </span>
           </div>
-
           {/* Loop markers */}
           {loopInterval > 0 &&
             Array.from(
@@ -85,10 +82,10 @@ export function VideoTimeline({
             ).map((loopTime) => (
               <div
                 key={`loop-${loopTime}`}
-                className="absolute top-0 h-full border-l border-dashed border-[#a78bfa]/40"
+                className="absolute top-0 h-full border-l border-dashed border-violet-400/40"
                 style={{ left: loopTime * pixelsPerSecond }}
               >
-                <div className="text-[8px] text-[#a78bfa] ml-1">♾️</div>
+                <RefreshCw className="w-3 h-3 text-violet-400 ml-0.5 mt-1" />
               </div>
             ))}
         </div>
@@ -109,19 +106,20 @@ export function VideoTimeline({
         </div>
       </div>
 
-      {/* Loop info */}
-      {loopInterval > 0 && (
-        <div className="mt-2 text-[10px] text-[#94a3b8] flex items-center gap-2">
-          <span className="text-[#a78bfa]">♾️</span>
-          <span>Events loop every {loopInterval}s</span>
-        </div>
-      )}
-      {loopInterval === 0 && (
-        <div className="mt-2 text-[10px] text-[#ff6b35] flex items-center gap-2">
-          <span>⚠️</span>
-          <span>One-time only (no loop)</span>
-        </div>
-      )}
+      {/* Footer info */}
+      <div className="mt-2 flex items-center gap-4">
+        {loopInterval > 0 ? (
+          <div className="text-sm text-stone-500 flex items-center gap-1.5">
+            <RefreshCw className="w-3 h-3 text-violet-400" />
+            events loop every {loopInterval}s
+          </div>
+        ) : (
+          <div className="text-sm text-orange-400 flex items-center gap-1.5">
+            <Ban className="w-3 h-3" />
+            one-time only — no loop
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -145,25 +143,20 @@ function TimelineTrack({
 
   return (
     <div
-      className={`relative h-16 border-b border-[#64748b]/20 ${hasEvents ? "bg-[#1a2332]/30" : ""}`}
+      className={`relative h-16 border-b border-stone-800/50 ${hasEvents ? "bg-stone-900/20" : ""}`}
     >
       {/* Track label */}
-      <div className="absolute left-0 top-0 h-full w-30 flex flex-col items-center gap-2 px-2 bg-[#0d1b2a] border-r border-[#64748b]/30 z-10">
+      <div className="absolute left-0 top-0 h-full w-28 flex items-center justify-center bg-stone-950 border-r border-stone-800 z-10 shrink-0">
         <Image
           src={abilityInfo.icon}
           alt={abilityInfo.name}
-          width={40}
-          height={40}
-          className="my-auto mx-auto"
+          width={36}
+          height={36}
         />
-
-        {/* <span className="text-[9px] text-[#00e5ff] font-bold">
-          {abilityInfo.name.split(" ")[0].toUpperCase()}
-        </span> */}
       </div>
 
-      {/* Drop zones every 5 seconds */}
-      <div className="absolute left-20 top-0 h-full right-0">
+      {/* Drop zones + events */}
+      <div className="absolute left-28 top-0 h-full right-0">
         {Array.from({ length: Math.floor(maxTime / 5) }, (_, i) => i * 5).map(
           (time) => (
             <TimelineDropZone
@@ -174,8 +167,6 @@ function TimelineTrack({
             />
           ),
         )}
-
-        {/* Event blocks */}
         {events.map((event) => (
           <TimelineEventBlock
             key={event.id}
@@ -207,16 +198,21 @@ function TimelineDropZone({
   return (
     <div
       ref={setNodeRef}
-      className={`absolute top-0 h-full rounded transition ${
-        isOver ? "bg-[#0ff]/20 border-2 border-[#0ff]" : ""
+      className={`absolute top-0 h-full transition ${
+        isOver ? "bg-amber-400/10 border-x border-amber-400/50" : ""
       }`}
-      style={{
-        left: timestamp * pixelsPerSecond,
-        width: 10 * pixelsPerSecond, // 5 second slots
-      }}
+      style={{ left: timestamp * pixelsPerSecond, width: 10 * pixelsPerSecond }}
     />
   );
 }
+
+const COLOR_MAP: Record<SpecialAbilityTag, string> = {
+  stealth: "from-purple-400/20 to-purple-500/20 border-purple-400/40",
+  mutation: "from-green-400/20 to-green-500/20 border-green-400/40",
+  replication: "from-blue-400/20 to-blue-500/20 border-blue-400/40",
+  encryption: "from-orange-400/20 to-orange-500/20 border-orange-400/40",
+  persistence: "from-pink-400/20 to-pink-500/20 border-pink-400/40",
+};
 
 function TimelineEventBlock({
   event,
@@ -234,14 +230,6 @@ function TimelineEventBlock({
     data: { type: "timeline-event", event },
   });
 
-  const colorMap: Record<SpecialAbilityTag, string> = {
-    stealth: "from-purple-300/30 to-purple-400/30",
-    mutation: "from-green-300/30 to-green-400/30",
-    replication: "from-blue-300/30 to-blue-400/30",
-    encryption: "from-orange-300/30 to-orange-400/30",
-    persistence: "from-pink-300/30 to-pink-400/30",
-  };
-
   return (
     <TooltipProvider>
       <Tooltip>
@@ -250,45 +238,50 @@ function TimelineEventBlock({
             ref={setNodeRef}
             {...listeners}
             {...attributes}
-            className={`absolute h-full rounded group cursor-move bg-linear-to-r ${colorMap[event.ability]} border border-white/10 hover:border-white/40 transition ${isDragging ? "opacity-50" : ""}`}
+            className={`absolute h-full group cursor-move bg-gradient-to-r border ${COLOR_MAP[event.ability]} hover:brightness-125 transition ${isDragging ? "opacity-40" : ""}`}
             style={{
               left: event.startTime * pixelsPerSecond,
               width: event.duration * pixelsPerSecond,
             }}
           >
-            <div className="relative h-full px-2 flex flex-col items-center gap-0">
+            <div className="h-full flex items-center justify-center">
               <Image
                 src={abilityInfo.icon}
                 alt={abilityInfo.name}
-                width={50}
-                height={50}
-                className="my-auto mx-auto"
+                width={28}
+                height={28}
               />
             </div>
-
-            <div
-              className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-red-500/50 text-white text-xs flex items-center justify-center cursor-pointer hover:bg-red-500/80 border border-white/20"
+            <button
+              className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-red-500/60 hover:bg-red-500 text-white flex items-center justify-center border border-stone-900 transition"
               onPointerDown={(e) => e.stopPropagation()}
               onClick={(e) => {
                 e.stopPropagation();
                 onRemove();
               }}
             >
-              ×
-            </div>
+              <X className="w-2.5 h-2.5" />
+            </button>
           </div>
         </TooltipTrigger>
         <TooltipContent
           side="top"
-          className="bg-background/80 border-[#00e5ff]/60"
+          className="bg-stone-900 border-stone-700"
+          style={{ fontFamily: "'IBM Plex Mono', monospace" }}
         >
-          <div className="">
-            <div className="font-bold text-[#00e5ff] text-xs mb-1">
+          <div className="space-y-1">
+            <div className="font-bold text-amber-400 text-sm">
               {abilityInfo.name}
             </div>
-            <div className="text-[#94a3b8] mb-2">{abilityInfo.description}</div>
-            <div className="text-sm text-white/70">{event.duration}sec</div>
-            <div className="text-[#fbbf24]  font-bold">{event.cost}🪙</div>
+            <div className="text-stone-400 text-sm">
+              {abilityInfo.description}
+            </div>
+            <div className="text-stone-300 text-sm">
+              {event.duration}s duration
+            </div>
+            <div className="text-amber-400 font-bold text-sm">
+              {event.cost}t
+            </div>
           </div>
         </TooltipContent>
       </Tooltip>

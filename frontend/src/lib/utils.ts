@@ -27,3 +27,10 @@ export function normaliseTagHyphen(tag: string): string {
 export function slugify(str: string) {
   return str.replace(/-/g, "").toLowerCase();
 }
+
+export function formatDuration(ms: number) {
+  const s = Math.floor(ms / 1000);
+  const m = Math.floor(s / 60);
+  const rem = s % 60;
+  return m > 0 ? `${m}m ${rem}s` : `${s}s`;
+}

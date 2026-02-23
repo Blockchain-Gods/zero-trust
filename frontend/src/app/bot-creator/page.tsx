@@ -35,7 +35,16 @@ import {
 import Image from "next/image";
 import { FlickeringGrid } from "@/components/ui/flickering-grid";
 import { useDeployBot } from "@/hooks/useDeployBot";
-import { CheckCircle2, Loader2 } from "lucide-react";
+import {
+  CheckCircle2,
+  Loader2,
+  ArrowLeft,
+  Rocket,
+  Coins,
+  Info,
+  ExternalLink,
+  AlertTriangle,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { slugify } from "@/lib/utils";
@@ -72,10 +81,7 @@ export default function BotCreatorFinalPage() {
   useEffect(() => {
     if (isDeploying) {
       const interval = setInterval(() => {
-        setProgress((prev) => {
-          if (prev >= 90) return 90; // Stop at 90%, wait for actual result
-          return prev + 5;
-        });
+        setProgress((prev) => (prev >= 90 ? 90 : prev + 5));
       }, 500);
       return () => clearInterval(interval);
     } else {
@@ -86,13 +92,11 @@ export default function BotCreatorFinalPage() {
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     setActiveDrag(null);
-
     if (!over) return;
 
     const dragData = active.data.current;
     const dropData = over.data.current;
 
-    // Moving existing timeline event
     if (dragData?.type === "timeline-event" && dropData?.type === "timeline") {
       const existingEvent = dragData.event as TimelineEvent;
       setState({
@@ -103,12 +107,9 @@ export default function BotCreatorFinalPage() {
             : e,
         ),
       });
-    }
-    // Drop new ability on timeline
-    else if (dragData?.type === "ability" && dropData?.type === "timeline") {
+    } else if (dragData?.type === "ability" && dropData?.type === "timeline") {
       const abilityId = dragData.abilityId as SpecialAbilityTag;
       const ability = SPECIAL_ABILITIES[abilityId];
-
       const isDiscounted = botConfig?.specialAbilityDiscount === abilityId;
       const cost = isDiscounted
         ? Math.floor(ability.baseCost * 0.7)
@@ -123,11 +124,7 @@ export default function BotCreatorFinalPage() {
           duration: 10,
           cost,
         };
-
-        setState({
-          ...state,
-          timeline: [...state.timeline, newEvent],
-        });
+        setState({ ...state, timeline: [...state.timeline, newEvent] });
       }
     }
   };
@@ -148,26 +145,19 @@ export default function BotCreatorFinalPage() {
       resourceAttack: "cpu",
       damageMultiplier: botConfig?.damageMultiplier || 1.0,
       victoryCondition: botConfig?.victoryCondition || "time_survival",
-      abilities: [...new Set(state.timeline.map((e) => e.ability))], // unique abilities
+      abilities: [...new Set(state.timeline.map((e) => e.ability))],
       threatCount: state.timeline.length + 2,
       spawnPattern: "steady",
       skillDiversity: "medium",
       version: BOTS_VERSION,
-      // creatorName: "Player",
     };
-
     setProgress(10);
     const deployedTokenId = await deployBot(fullConfig);
-
     if (deployedTokenId) {
       setProgress(100);
       saveDeployedBot(fullConfig, deployedTokenId);
       setShowSuccess(true);
-      // router.push("/bots");
     }
-    // saveBotToLocalStorage(fullConfig);
-    // console.log("🤖 Bot Config:", fullConfig);
-    // router.push("/bots");
   };
 
   return (
@@ -176,68 +166,57 @@ export default function BotCreatorFinalPage() {
         onDragEnd={handleDragEnd}
         onDragStart={(e) => setActiveDrag(e.active.data.current)}
       >
-        <div className="min-h-screen bg-[#0d1b2a] relative overflow-hidden">
-          {/* Background Effects */}
-          <div className="absolute inset-0 opacity-15">
-            <div
-              className="absolute inset-0"
-              style={{
-                backgroundImage: `linear-gradient(90deg, #00e5ff 1px, transparent 1px), linear-gradient(0deg, #00e5ff 1px, transparent 1px)`,
-                backgroundSize: "50px 50px",
-              }}
-            />
-          </div>
-
-          <div className="relative z-10 p-6">
+        <div
+          className="min-h-screen bg-stone-950 text-white"
+          style={{ fontFamily: "'IBM Plex Mono', monospace" }}
+        >
+          <div className="p-6">
             {/* Header */}
-            <div className="max-w-400 mx-auto mb-6">
-              <div className="relative">
-                <div className="absolute inset-0 bg-linear-to-r from-[#00e5ff]/20 to-[#a78bfa]/20 blur-xl" />
-                <div className="relative bg-[#1a2332]/90 backdrop-blur-sm border-2 border-[#00e5ff]/60 p-4 ">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <h1 className="text-4xl font-bold text-[#00e5ff] tracking-wider font-mono">
-                        BOT DEVELOPMENT LAB
-                      </h1>
-                      <p className="text-[#94a3b8] text-sm mt-1">
-                        DRAG ABILITIES TO TIMELINE • DESIGN YOUR ATTACK PATTERN
-                      </p>
-                    </div>
-                    <div className="flex gap-4">
-                      <div className="flex items-center gap-2 bg-[#fbbf24]/20 border border-[#fbbf24]/60 px-4 py-2 ">
-                        <span className="text-sm text-[#fbbf24]">TOKENS</span>
-                        <span className="text-2xl font-bold text-[#fbbf24]">
-                          {tokensRemaining}
-                        </span>
-                        <span className="text-sm text-[#94a3b8]">
-                          / {botConfig?.baseTokens || 100}
-                        </span>
-                      </div>
-                    </div>
+            <div className="max-w-screen-2xl mx-auto mb-6">
+              <div className="border border-stone-800 bg-stone-900/40 p-4 flex justify-between items-center">
+                <div>
+                  <div className="text-sm text-stone-600 uppercase tracking-widest mb-1">
+                    zero-trust · attacker
                   </div>
+                  <h1 className="text-2xl font-bold text-amber-400 uppercase tracking-wider">
+                    bot development lab
+                  </h1>
+                  <p className="text-stone-500 text-sm mt-1">
+                    drag abilities to timeline · design your attack pattern
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 border border-amber-400/30 bg-amber-400/5 px-4 py-3">
+                  <Coins className="w-4 h-4 text-amber-400" />
+                  <span className="text-sm text-stone-500 uppercase tracking-widest">
+                    tokens
+                  </span>
+                  <span className="text-3xl font-bold text-amber-400 tabular-nums ml-1">
+                    {tokensRemaining}
+                  </span>
+                  <span className="text-sm text-stone-600">
+                    / {botConfig?.baseTokens || 100}
+                  </span>
                 </div>
               </div>
             </div>
 
-            {/* Main Content */}
-            <div className="max-w-400 mx-auto grid grid-cols-12 gap-6">
-              {/* Left Panel - Bot Config & Abilities */}
+            {/* Main 12-col grid */}
+            <div className="max-w-screen-2xl mx-auto grid grid-cols-12 gap-6">
+              {/* Left Panel */}
               <div className="col-span-3 space-y-4">
-                {/* Bot Identity */}
-                <ConfigPanel title="BOT IDENTITY">
+                <ConfigPanel title="bot identity">
                   <input
                     type="text"
                     value={state.botName}
                     onChange={(e) =>
                       setState({ ...state, botName: e.target.value })
                     }
-                    placeholder="ENTER BOT NAME..."
-                    className="w-full bg-[#1a2332]/50 border-2 border-[#00e5ff]/30 text-[#00e5ff] px-3 py-2 font-mono text-sm focus:border-[#00e5ff] focus:outline-none rounded"
+                    placeholder="enter bot name..."
+                    className="w-full bg-stone-950 border border-stone-700 text-amber-400 px-3 py-2 text-sm focus:border-amber-400/60 focus:outline-none placeholder:text-stone-700"
                   />
                 </ConfigPanel>
 
-                {/* Bot Type */}
-                <ConfigPanel title="BOT TYPE">
+                <ConfigPanel title="bot type">
                   <div className="grid grid-cols-2 gap-2">
                     {(
                       Object.entries(BOT_TYPES) as [
@@ -247,54 +226,50 @@ export default function BotCreatorFinalPage() {
                     ).map(([type, info]) => (
                       <button
                         key={type}
-                        onClick={() => (
-                          console.log("[bot creator pg] info: ", info),
+                        onClick={() =>
                           setState({ ...state, botType: type, timeline: [] })
-                        )}
-                        className={`p-2 border-2 transition rounded ${
+                        }
+                        className={`p-2 border transition text-center ${
                           state.botType === type
-                            ? "border-[#4ade80] bg-[#4ade80]/15"
-                            : "border-[#64748b] bg-[#1a2332]/50 hover:border-[#0ff]/60"
+                            ? "border-amber-400/60 bg-amber-400/10"
+                            : "border-stone-700 bg-stone-900/50 hover:border-stone-500"
                         }`}
                       >
                         <Image
                           src={slugify(info.icon)}
                           alt={info.name}
-                          width={50}
-                          height={50}
+                          width={44}
+                          height={44}
                           className="mb-2 mx-auto"
                         />
-                        <div className="text-md text-[#00e5ff] font-bold leading-tight">
+                        <div className="text-sm text-stone-200 font-bold leading-tight">
                           {info.name.toUpperCase()}
                         </div>
-                        <div className="text-sm text-[#94a3b8] mt-1">
-                          {info.baseTokens}
+                        <div className="text-sm text-stone-600 mt-0.5">
+                          {info.baseTokens}t
                         </div>
                       </button>
                     ))}
                   </div>
                 </ConfigPanel>
 
-                {/* Bot Stats */}
                 {botConfig && (
-                  <ConfigPanel title="BOT STATS">
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-[#94a3b8]">Damage:</span>
-                        <span className="text-[#00e5ff] font-bold">
-                          {botConfig.damageMultiplier}x
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-[#94a3b8]">Loop:</span>
-                        <span className="text-[#00e5ff] font-bold">
-                          {botConfig.loopInterval === 0
-                            ? "NO LOOP"
-                            : `${botConfig.loopInterval}s`}
-                        </span>
-                      </div>
+                  <ConfigPanel title="bot stats">
+                    <div className="space-y-2">
+                      <StatRow
+                        label="damage"
+                        value={`${botConfig.damageMultiplier}x`}
+                      />
+                      <StatRow
+                        label="loop"
+                        value={
+                          botConfig.loopInterval === 0
+                            ? "none"
+                            : `${botConfig.loopInterval}s`
+                        }
+                      />
                       {botConfig.specialAbilityDiscount && (
-                        <div className="text-xs text-[#4ade80] flex items-center gap-2 mt-2 p-2 bg-[#4ade80]/10 rounded">
+                        <div className="flex items-center gap-2 mt-2 p-2 bg-green-400/5 border border-green-400/20">
                           <Image
                             src={
                               SPECIAL_ABILITIES[
@@ -306,20 +281,20 @@ export default function BotCreatorFinalPage() {
                                 botConfig.specialAbilityDiscount
                               ].name
                             }
-                            width={30}
-                            height={30}
-                            className="mb-2"
-                          />{" "}
-                          -30% cost
+                            width={24}
+                            height={24}
+                          />
+                          <span className="text-sm text-green-400">
+                            -30% cost
+                          </span>
                         </div>
                       )}
                     </div>
                   </ConfigPanel>
                 )}
 
-                {/* Abilities Palette */}
-                <ConfigPanel title="ABILITIES SHOP">
-                  <div className="space-y-2 max-h-100 overflow-y-auto">
+                <ConfigPanel title="abilities shop">
+                  <div className="space-y-2 max-h-96 overflow-y-auto">
                     {(
                       Object.entries(SPECIAL_ABILITIES) as [
                         SpecialAbilityTag,
@@ -332,7 +307,6 @@ export default function BotCreatorFinalPage() {
                         ? Math.floor(info.baseCost * 0.7)
                         : info.baseCost;
                       const canAfford = tokensRemaining >= cost;
-
                       return (
                         <DraggableAbility
                           key={abilityId}
@@ -348,38 +322,36 @@ export default function BotCreatorFinalPage() {
                 </ConfigPanel>
               </div>
 
-              {/* Center - Timeline */}
+              {/* Center — Timeline */}
               <div className="col-span-6 space-y-4">
                 {/* Bot Preview */}
-                <div className="relative">
-                  <div className="absolute inset-0 bg-pink-700/40 blur-3xl animate-pulse" />
-                  <div className="relative h-80 border-4 border-[#00e5ff]/50 bg-rose-950/30 backdrop-blur-sm rounded-lg overflow-hidden flex items-center justify-center">
-                    <FlickeringGrid
-                      className="absolute inset-0 z-0"
-                      squareSize={4}
-                      gridGap={6}
-                      color="#ef4444"
-                      maxOpacity={0.5}
-                      flickerChance={0.1}
-                    />
-                    <div className="relative z-10 text-8xl animate-float">
-                      {state.botType ? (
-                        <Image
-                          src={slugify(BOT_TYPES[state.botType].icon)}
-                          alt={BOT_TYPES[state.botType].name}
-                          width={180}
-                          height={180}
-                          className="mb-1 mx-auto"
-                        />
-                      ) : (
-                        "❓"
-                      )}
-                    </div>
+                <div className="relative h-72 border border-stone-800 bg-rose-950/20 overflow-hidden flex items-center justify-center">
+                  <FlickeringGrid
+                    className="absolute inset-0 z-0"
+                    squareSize={4}
+                    gridGap={6}
+                    color="#ef4444"
+                    maxOpacity={0.4}
+                    flickerChance={0.1}
+                  />
+                  <div className="relative z-10 animate-float">
+                    {state.botType ? (
+                      <Image
+                        src={slugify(BOT_TYPES[state.botType].icon)}
+                        alt={BOT_TYPES[state.botType].name}
+                        width={160}
+                        height={160}
+                        className="mx-auto drop-shadow-lg"
+                      />
+                    ) : (
+                      <div className="w-20 h-20 border border-dashed border-stone-700 flex items-center justify-center">
+                        <span className="text-stone-700 text-sm">none</span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                {/* Timeline */}
-                <ConfigPanel title="ATTACK TIMELINE">
+                <ConfigPanel title="attack timeline">
                   <VideoTimeline
                     events={state.timeline}
                     onRemoveEvent={removeEvent}
@@ -388,27 +360,26 @@ export default function BotCreatorFinalPage() {
                   />
                 </ConfigPanel>
 
-                {/* Instructions */}
-                <div className="text-[10px] text-[#94a3b8] bg-[#1a2332]/50 p-3 rounded border border-[#64748b]/30">
-                  💡 <strong>Tip:</strong> Drag abilities from the shop onto the
-                  timeline. Each ability creates a timed event. Events loop
-                  based on your bot type (Worm = 60s, Standard = 90s, Logic Bomb
-                  = no loop).
+                <div className="flex gap-2 text-sm text-stone-600 border border-stone-800 bg-stone-900/30 p-3">
+                  <Info className="w-4 h-4 shrink-0 mt-0.5 text-stone-700" />
+                  <span>
+                    Drag abilities from the shop onto the timeline. Events loop
+                    based on your bot type — worm loops at 60s, standard at 90s,
+                    logic bomb never loops.
+                  </span>
                 </div>
               </div>
 
-              {/* Right Panel - Charts */}
+              {/* Right Panel */}
               <div className="col-span-3 space-y-4">
-                {/* Spawn Chart */}
-                <ConfigPanel title="SPAWN CURVE">
+                <ConfigPanel title="spawn curve">
                   <SpawnCurveChart
                     events={state.timeline}
                     loopInterval={botConfig?.loopInterval || 0}
                   />
                 </ConfigPanel>
 
-                {/* Damage Chart */}
-                <ConfigPanel title="DAMAGE PROJECTION">
+                <ConfigPanel title="damage projection">
                   <DamageCurveChart
                     events={state.timeline}
                     loopInterval={botConfig?.loopInterval || 0}
@@ -416,43 +387,38 @@ export default function BotCreatorFinalPage() {
                   />
                 </ConfigPanel>
 
-                {/* Event Summary */}
-                <ConfigPanel title="TIMELINE EVENTS">
-                  <div className="space-y-1 max-h-50 overflow-y-auto">
+                <ConfigPanel title="timeline events">
+                  <div className="space-y-1 max-h-48 overflow-y-auto">
                     {state.timeline.length === 0 ? (
-                      <div className="text-[#64748b] text-xs text-center py-4">
-                        No events scheduled
+                      <div className="text-stone-600 text-sm text-center py-4">
+                        no events scheduled
                       </div>
                     ) : (
-                      state.timeline
+                      [...state.timeline]
                         .sort((a, b) => a.startTime - b.startTime)
                         .map((event) => (
                           <div
                             key={event.id}
-                            className="flex justify-between items-center text-xs bg-[#1a2332]/30 p-2 rounded"
+                            className="flex justify-between items-center border border-stone-800 bg-stone-900/30 p-2"
                           >
                             <div className="flex items-center gap-2">
-                              {/* <span className="text-lg">
-                              {SPECIAL_ABILITIES[event.ability].icon}
-                            </span> */}
                               <Image
                                 src={SPECIAL_ABILITIES[event.ability].icon}
                                 alt={SPECIAL_ABILITIES[event.ability].name}
-                                width={40}
-                                height={40}
-                                className="my-auto mx-auto"
+                                width={28}
+                                height={28}
                               />
                               <div>
-                                <div className="text-[#00e5ff] font-bold">
+                                <div className="text-sm text-amber-400 font-bold tabular-nums">
                                   {event.startTime}s
                                 </div>
-                                <div className="text-[#94a3b8] text-[10px]">
+                                <div className="text-sm text-stone-600">
                                   {event.duration}s duration
                                 </div>
                               </div>
                             </div>
-                            <span className="text-[#fbbf24]">
-                              {event.cost}🪙
+                            <span className="text-sm text-amber-400 font-bold tabular-nums">
+                              {event.cost}t
                             </span>
                           </div>
                         ))
@@ -463,27 +429,24 @@ export default function BotCreatorFinalPage() {
             </div>
 
             {/* Bottom Action Bar */}
-            <div className="max-w-400 mx-auto mt-6">
-              <div className="bg-[#1a2332]/90 backdrop-blur-sm border-2 border-[#00e5ff]/60 p-4 ">
-                <div className="flex gap-4 items-center justify-between">
-                  <button
-                    onClick={() => router.push("/")}
-                    className="bg-[#1a2332] border-2 border-[#64748b] px-6 py-3 rounded text-[#94a3b8] font-bold hover:border-[#00e5ff]/60 hover:text-[#00e5ff] transition"
-                  >
-                    ← BACK
-                  </button>
+            <div className="max-w-screen-2xl mx-auto mt-6">
+              <div className="border border-stone-800 bg-stone-900/40 p-4 flex gap-4 items-center justify-between">
+                <button
+                  onClick={() => router.push("/")}
+                  className="flex items-center gap-2 border border-stone-700 px-5 py-2.5 text-stone-400 text-sm font-bold hover:border-stone-500 hover:text-white transition"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  back
+                </button>
 
-                  <button
-                    onClick={handleDeploy}
-                    disabled={!state.botType || state.timeline.length === 0}
-                    className="relative group disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <div className="absolute inset-0 bg-linear-to-r from-[#ff6b35] to-[#fbbf24] blur-lg opacity-80 group-hover:opacity-100 transition" />
-                    <div className="relative bg-linear-to-r from-[#ff6b35] to-[#ff8c42] border-2 border-[#fbbf24] px-12 py-3 rounded font-bold text-xl text-white hover:from-[#ff8c42] hover:to-[#fbbf24] transition">
-                      DEPLOY BOT
-                    </div>
-                  </button>
-                </div>
+                <button
+                  onClick={handleDeploy}
+                  disabled={!state.botType || state.timeline.length === 0}
+                  className="flex items-center gap-2 bg-amber-400 text-stone-950 px-10 py-2.5 font-bold text-sm hover:bg-amber-300 transition disabled:opacity-40 disabled:cursor-not-allowed uppercase tracking-widest"
+                >
+                  <Rocket className="w-4 h-4" />
+                  deploy bot
+                </button>
               </div>
             </div>
           </div>
@@ -491,21 +454,7 @@ export default function BotCreatorFinalPage() {
           {/* Drag Overlay */}
           <DragOverlay>
             {activeDrag && (
-              <div className="bg-[#00ffff]/25 border-2 h-16 border-[#0ff]/20 p-3 rounded backdrop-blur-sm">
-                {/* <Image
-                src={
-                  SPECIAL_ABILITIES[activeDrag.abilityId].icon ||
-                  activeDrag.icon
-                }
-                alt={
-                  SPECIAL_ABILITIES[activeDrag.abilityId]?.name ||
-                  activeDrag.name
-                }
-                width={50}
-                height={50}
-                className="mb-2 mx-auto"
-              /> */}
-              </div>
+              <div className="bg-amber-400/10 border border-amber-400/40 h-16 w-32" />
             )}
           </DragOverlay>
 
@@ -516,25 +465,11 @@ export default function BotCreatorFinalPage() {
                 transform: translateY(0px);
               }
               50% {
-                transform: translateY(-20px);
+                transform: translateY(-16px);
               }
             }
-
             .animate-float {
               animation: float 3s ease-in-out infinite;
-            }
-
-            .clip-corners {
-              clip-path: polygon(
-                0 8px,
-                8px 0,
-                calc(100% - 8px) 0,
-                100% 8px,
-                100% calc(100% - 8px),
-                calc(100% - 8px) 100%,
-                8px 100%,
-                0 calc(100% - 8px)
-              );
             }
           `}</style>
         </div>
@@ -542,35 +477,36 @@ export default function BotCreatorFinalPage() {
 
       {/* Deploying Dialog */}
       <AlertDialog open={isDeploying}>
-        <AlertDialogContent className="bg-[#0d1b2a] border-[#00e5ff]">
+        <AlertDialogContent
+          className="bg-stone-900 border-stone-700"
+          style={{ fontFamily: "'IBM Plex Mono', monospace" }}
+        >
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-[#00e5ff] flex items-center gap-2">
-              <Loader2 className="h-5 w-5 animate-spin" />
-              Deploying Bot to Blockchain
+            <AlertDialogTitle className="text-amber-400 flex items-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              deploying bot to blockchain
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-white/70">
-              {progress < 30 && "Building transaction..."}
-              {progress >= 30 && progress < 60 && "Signing with your wallet..."}
+            <AlertDialogDescription className="text-stone-400">
+              {progress < 30 && "building transaction..."}
+              {progress >= 30 && progress < 60 && "signing with your wallet..."}
               {progress >= 60 &&
                 progress < 90 &&
-                "Submitting to Stellar network..."}
-              {progress >= 90 && "Waiting for confirmation..."}
+                "submitting to stellar network..."}
+              {progress >= 90 && "waiting for confirmation..."}
             </AlertDialogDescription>
           </AlertDialogHeader>
-
           <div className="space-y-4">
-            <Progress value={progress} className="h-2" />
-
+            <Progress value={progress} className="h-0.5" />
             {txHash && (
-              <p className="text-xs text-white/50 font-mono break-all bg-black/40 p-2 rounded">
+              <p className="text-sm text-stone-500 font-mono break-all border border-stone-800 bg-stone-950 p-2">
                 {txHash}
               </p>
             )}
-
             {deployError && (
-              <p className="text-xs text-red-400 bg-red-500/10 p-2 rounded border border-red-500/20">
-                ⚠️ {deployError}
-              </p>
+              <div className="flex items-start gap-2 text-sm text-red-400 bg-red-500/5 p-2 border border-red-500/20">
+                <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+                {deployError}
+              </div>
             )}
           </div>
         </AlertDialogContent>
@@ -578,56 +514,46 @@ export default function BotCreatorFinalPage() {
 
       {/* Success Dialog */}
       <AlertDialog open={showSuccess} onOpenChange={setShowSuccess}>
-        <AlertDialogContent className="bg-[#0d1b2a] border-emerald-500">
+        <AlertDialogContent
+          className="bg-stone-900 border-green-500/40"
+          style={{ fontFamily: "'IBM Plex Mono', monospace" }}
+        >
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-emerald-500 flex items-center gap-2">
-              <CheckCircle2 className="h-6 w-6" />
-              Bot Deployed Successfully!
+            <AlertDialogTitle className="text-green-400 flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4" />
+              bot deployed successfully
             </AlertDialogTitle>
-            <AlertDialogDescription>
-              Your bot has been minted as an NFT on the Stellar blockchain.
+            <AlertDialogDescription className="text-stone-400">
+              your bot has been minted as an NFT on the stellar blockchain.
             </AlertDialogDescription>
           </AlertDialogHeader>
-
           <div className="space-y-4">
-            <div className="bg-black/40 rounded-lg p-4 border border-white/10">
-              <p className="text-xs text-white/50 mb-1">Token ID</p>
-              <p className="text-2xl font-mono font-bold text-white">
+            <div className="border border-stone-700 bg-stone-950 p-4">
+              <p className="text-sm text-stone-600 uppercase tracking-widest mb-1">
+                token id
+              </p>
+              <p className="text-3xl font-bold text-white tabular-nums">
                 {tokenId}
               </p>
             </div>
-
             {txHash && (
               <a
                 href={`https://stellar.expert/explorer/testnet/tx/${txHash}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-sm text-[#00e5ff] hover:underline flex items-center gap-1"
+                className="text-sm text-amber-400 hover:text-amber-300 flex items-center gap-1.5 transition-colors"
               >
-                View on Stellar Expert
-                <svg
-                  className="w-3 h-3"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                  />
-                </svg>
+                view on stellar expert
+                <ExternalLink className="w-3.5 h-3.5" />
               </a>
             )}
           </div>
-
           <AlertDialogFooter>
             <Button
               onClick={() => router.push("/bots")}
-              className="w-full bg-emerald-500 hover:bg-emerald-400 text-black font-bold"
+              className="w-full bg-amber-400 hover:bg-amber-300 text-stone-950 font-bold uppercase tracking-widest"
             >
-              View My Bots
+              view my bots
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -635,8 +561,6 @@ export default function BotCreatorFinalPage() {
     </>
   );
 }
-
-// Components
 
 function DraggableAbility({
   abilityId,
@@ -662,41 +586,37 @@ function DraggableAbility({
       ref={setNodeRef}
       {...listeners}
       {...attributes}
-      className={`p-2 border-2 transition rounded ${
+      className={`p-2 border transition ${
         !canAfford
-          ? "opacity-30 cursor-not-allowed border-[#64748b]"
+          ? "opacity-30 cursor-not-allowed border-stone-800"
           : isDragging
-            ? "opacity-50 border-[#0ff]"
-            : "border-[#64748b] bg-[#1a2332]/50 hover:border-[#0ff]/60 cursor-grab active:cursor-grabbing"
+            ? "opacity-50 border-amber-400/60 bg-amber-400/5"
+            : "border-stone-700 bg-stone-900/50 hover:border-stone-500 cursor-grab active:cursor-grabbing"
       }`}
     >
-      <div className="flex items-center justify-between">
+      <div className="flex items-center gap-2 justify-between">
         <div className="flex items-center gap-2">
           <Image
             src={info.icon}
             alt={info.name}
-            width={50}
-            height={50}
-            className="mb-2 mx-auto"
+            width={36}
+            height={36}
+            className="shrink-0"
           />
           <div>
-            <div className="text-[10px] text-[#00e5ff] font-bold">
+            <div className="text-sm text-stone-200 font-bold">
               {info.name.toUpperCase()}
             </div>
-            <div className="text-xs text-[#94a3b8] text-wrap">
-              {info.description}
-            </div>
+            <div className="text-sm text-stone-500">{info.description}</div>
           </div>
         </div>
-        <div className="flex flex-col items-end">
+        <div className="flex flex-col items-end shrink-0">
           <div
-            className={`text-sm font-bold ${isDiscounted ? "text-[#4ade80]" : "text-[#fbbf24]"}`}
+            className={`text-sm font-bold tabular-nums ${isDiscounted ? "text-green-400" : "text-amber-400"}`}
           >
-            {cost}🪙
+            {cost}t
           </div>
-          {isDiscounted && (
-            <div className="text-[8px] text-[#4ade80]">-30%</div>
-          )}
+          {isDiscounted && <div className="text-sm text-green-400">-30%</div>}
         </div>
       </div>
     </div>
@@ -711,14 +631,22 @@ function ConfigPanel({
   children: React.ReactNode;
 }) {
   return (
-    <div className="relative">
-      <div className="absolute inset-0 bg-[#00e5ff]/12 blur-xl" />
-      <div className="relative bg-[#1a2332]/90 backdrop-blur-sm border-2 border-[#00e5ff]/60 p-3 ">
-        <h3 className="text-[#00e5ff] font-bold text-[10px] mb-2 tracking-wider">
+    <div className="border border-stone-800">
+      <div className="px-3 py-2 border-b border-stone-800 bg-stone-900/40">
+        <h3 className="text-sm text-stone-500 uppercase tracking-widest">
           {title}
         </h3>
-        {children}
       </div>
+      <div className="p-3">{children}</div>
+    </div>
+  );
+}
+
+function StatRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex justify-between items-center text-sm">
+      <span className="text-stone-500">{label}</span>
+      <span className="text-stone-200 font-bold">{value}</span>
     </div>
   );
 }

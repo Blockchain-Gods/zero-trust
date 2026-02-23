@@ -26,10 +26,18 @@ const Toaster = ({ ...props }: ToasterProps) => {
       }}
       style={
         {
-          "--normal-bg": "var(--popover)",
-          "--normal-text": "var(--popover-foreground)",
-          "--normal-border": "var(--border)",
-          "--border-radius": "var(--radius)",
+          "--normal-bg": "rgb(12 10 9)" /* stone-950 */,
+          "--normal-border": "rgb(41 37 36)" /* stone-800 */,
+          "--normal-text": "rgb(214 211 209)" /* stone-300 */,
+          "--success-bg": "rgb(12 10 9)",
+          "--success-border": "rgb(41 37 36)",
+          "--success-text": "rgb(74 222 128)" /* green-400 */,
+          "--error-bg": "rgb(12 10 9)",
+          "--error-border": "rgb(41 37 36)",
+          "--error-text": "rgb(248 113 113)" /* red-400 */,
+          "--border-radius": "0",
+          fontFamily: "'IBM Plex Mono', monospace",
+          fontSize: "0.875rem",
         } as React.CSSProperties
       }
       toastOptions={{

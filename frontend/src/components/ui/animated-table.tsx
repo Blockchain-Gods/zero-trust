@@ -79,13 +79,13 @@ const TableSearch = ({
   placeholder?: string;
 }) => (
   <div className="relative">
-    <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+    <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-stone-600" />
     <input
       type="text"
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
-      className="h-9 w-full rounded-md border border-table-border bg-background pr-8 pl-9 text-foreground text-sm placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+      className="h-9 w-full border border-stone-800 bg-stone-950 pr-8 pl-9 text-stone-200 text-sm placeholder:text-stone-700 focus:border-amber-400 focus:outline-none font-mono"
     />
     <AnimatePresence>
       {value && (
@@ -94,7 +94,7 @@ const TableSearch = ({
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.8 }}
           onClick={() => onChange("")}
-          className="absolute top-1/2 right-2 -translate-y-1/2 rounded p-0.5 text-muted-foreground hover:bg-muted hover:text-foreground"
+          className="absolute top-1/2 right-2 -translate-y-1/2 p-0.5 text-stone-600 hover:text-stone-400"
         >
           <X className="h-3.5 w-3.5" />
         </motion.button>
@@ -146,8 +146,8 @@ const ColumnVisibilityDropdown = <T,>({
       <button
         onClick={() => setOpen(!open)}
         className={cn(
-          "flex h-9 items-center gap-2 rounded-md border border-table-border bg-background px-3 text-muted-foreground text-sm transition-colors hover:bg-muted hover:text-foreground",
-          open && "border-primary text-foreground",
+          "flex h-9 items-center gap-2 border border-stone-800 bg-stone-950 px-3 text-stone-600 text-sm font-mono transition-colors hover:border-stone-700 hover:text-stone-400",
+          open && "border-amber-400 text-stone-200",
         )}
       >
         <Columns3 className="h-4 w-4" />
@@ -160,27 +160,27 @@ const ColumnVisibilityDropdown = <T,>({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.96 }}
             transition={{ duration: 0.15 }}
-            className="absolute top-full right-0 z-20 mt-2 min-w-[180px] rounded-lg border border-table-border bg-card p-1 shadow-lg"
+            className="absolute top-full right-0 z-20 mt-2 min-w-[180px] border border-stone-800 bg-stone-900 p-1 shadow-lg"
           >
             {hideableColumns.map((column) => (
               <button
                 key={column.id}
                 onClick={() => toggleColumn(column.id)}
-                className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors hover:bg-muted"
+                className="flex w-full items-center gap-2 px-2 py-1.5 text-left text-sm font-mono transition-colors hover:bg-stone-800"
               >
                 <div
                   className={cn(
-                    "flex h-4 w-4 items-center justify-center rounded border transition-all",
+                    "flex h-4 w-4 items-center justify-center border transition-all",
                     visibleColumns.includes(column.id)
-                      ? "border-primary bg-primary text-primary-foreground"
-                      : "border-muted-foreground/40",
+                      ? "border-amber-400 bg-amber-400 text-stone-950"
+                      : "border-stone-700",
                   )}
                 >
                   {visibleColumns.includes(column.id) && (
                     <Check className="h-3 w-3" strokeWidth={3} />
                   )}
                 </div>
-                <span className="text-foreground">{column.header}</span>
+                <span className="text-stone-300">{column.header}</span>
               </button>
             ))}
           </motion.div>
@@ -207,13 +207,13 @@ const TablePagination = ({
   const canGoNext = page < totalPages;
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-4 border-table-border border-t bg-table-header px-4 py-3">
-      <div className="flex items-center gap-2 text-muted-foreground text-sm">
+    <div className="flex flex-wrap items-center justify-between gap-4 border-stone-800 border-t bg-stone-900 px-4 py-3">
+      <div className="flex items-center gap-2 text-stone-600 text-sm font-mono">
         <span>Rows per page:</span>
         <select
           value={pageSize}
           onChange={(e) => onPageSizeChange?.(Number(e.target.value))}
-          className="h-8 rounded border border-table-border bg-background px-2 text-foreground focus:border-primary focus:outline-none"
+          className="h-8 border border-stone-800 bg-stone-950 px-2 text-stone-400 font-mono focus:border-amber-400 focus:outline-none"
         >
           {pageSizeOptions.map((size) => (
             <option key={size} value={size}>
@@ -223,7 +223,7 @@ const TablePagination = ({
         </select>
       </div>
 
-      <div className="flex items-center gap-1 text-muted-foreground text-sm">
+      <div className="flex items-center gap-1 text-stone-600 text-sm font-mono">
         <span>
           {totalItems > 0
             ? `${startItem}-${endItem} of ${totalItems}`
@@ -238,10 +238,10 @@ const TablePagination = ({
           disabled={!canGoPrev}
           onClick={() => onPageChange(1)}
           className={cn(
-            "flex h-8 w-8 items-center justify-center rounded border border-table-border transition-colors",
+            "flex h-8 w-8 items-center justify-center border border-stone-800 transition-colors",
             canGoPrev
-              ? "text-foreground hover:bg-muted"
-              : "cursor-not-allowed text-muted-foreground/40",
+              ? "text-stone-400 hover:border-stone-700 hover:text-stone-200"
+              : "cursor-not-allowed text-stone-800",
           )}
         >
           <ChevronsLeft className="h-4 w-4" />
@@ -252,10 +252,10 @@ const TablePagination = ({
           disabled={!canGoPrev}
           onClick={() => onPageChange(page - 1)}
           className={cn(
-            "flex h-8 w-8 items-center justify-center rounded border border-table-border transition-colors",
+            "flex h-8 w-8 items-center justify-center border border-stone-800 transition-colors",
             canGoPrev
-              ? "text-foreground hover:bg-muted"
-              : "cursor-not-allowed text-muted-foreground/40",
+              ? "text-stone-400 hover:border-stone-700 hover:text-stone-200"
+              : "cursor-not-allowed text-stone-800",
           )}
         >
           <ChevronLeft className="h-4 w-4" />
@@ -281,10 +281,10 @@ const TablePagination = ({
                 whileTap={{ scale: 0.9 }}
                 onClick={() => onPageChange(pageNum)}
                 className={cn(
-                  "flex h-8 w-8 items-center justify-center rounded text-sm transition-colors",
+                  "flex h-8 w-8 items-center justify-center text-sm font-mono transition-colors",
                   page === pageNum
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                    ? "text-amber-400 border border-amber-400/30"
+                    : "text-stone-600 hover:text-stone-400",
                 )}
               >
                 {pageNum}
@@ -299,10 +299,10 @@ const TablePagination = ({
           disabled={!canGoNext}
           onClick={() => onPageChange(page + 1)}
           className={cn(
-            "flex h-8 w-8 items-center justify-center rounded border border-table-border transition-colors",
+            "flex h-8 w-8 items-center justify-center border border-stone-800 transition-colors",
             canGoNext
-              ? "text-foreground hover:bg-muted"
-              : "cursor-not-allowed text-muted-foreground/40",
+              ? "text-stone-400 hover:border-stone-700 hover:text-stone-200"
+              : "cursor-not-allowed text-stone-800",
           )}
         >
           <ChevronRight className="h-4 w-4" />
@@ -313,10 +313,10 @@ const TablePagination = ({
           disabled={!canGoNext}
           onClick={() => onPageChange(totalPages)}
           className={cn(
-            "flex h-8 w-8 items-center justify-center rounded border border-table-border transition-colors",
+            "flex h-8 w-8 items-center justify-center border border-stone-800 transition-colors",
             canGoNext
-              ? "text-foreground hover:bg-muted"
-              : "cursor-not-allowed text-muted-foreground/40",
+              ? "text-stone-400 hover:border-stone-700 hover:text-stone-200"
+              : "cursor-not-allowed text-stone-800",
           )}
         >
           <ChevronsRight className="h-4 w-4" />
@@ -334,7 +334,7 @@ const AnimatedTableRoot = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "relative w-full overflow-hidden rounded-lg border border-table-border bg-card",
+      "relative w-full overflow-hidden border border-stone-800 bg-stone-950",
       className,
     )}
     {...props}
@@ -376,7 +376,7 @@ const TableHeader = React.forwardRef<
   <thead
     ref={ref}
     className={cn(
-      "bg-table-header",
+      "bg-stone-900",
       sticky && "sticky top-0 z-10 shadow-sm",
       className,
     )}
@@ -418,10 +418,10 @@ const TableRow = React.forwardRef<HTMLTableRowElement, TableRowProps>(
       transition={{ duration: 0.2, delay: index * 0.03 }}
       onClick={onClick}
       className={cn(
-        "group border-table-border border-b transition-colors",
-        "hover:bg-table-row-hover",
-        isSelected && "bg-table-row-selected",
-        striped && index % 2 === 1 && "bg-table-row-stripe",
+        "group border-stone-800/60 border-b transition-colors",
+        "hover:bg-stone-900/60",
+        isSelected && "bg-amber-400/5",
+        striped && index % 2 === 1 && "bg-stone-900/40",
         className,
       )}
     >
@@ -444,7 +444,7 @@ const ExpandedRow = ({
     animate={{ opacity: 1, height: "auto" }}
     exit={{ opacity: 0, height: 0 }}
     transition={{ duration: 0.2 }}
-    className="border-table-border border-b bg-muted/30"
+    className="border-stone-800 border-b bg-stone-900/40"
   >
     <td colSpan={colSpan} className="p-0">
       <motion.div
@@ -473,11 +473,11 @@ const ExpandButton = ({
       e.stopPropagation();
       onClick();
     }}
-    className="flex h-6 w-6 items-center justify-center rounded transition-colors hover:bg-muted"
+    className="flex h-6 w-6 items-center justify-center transition-colors hover:bg-stone-800"
     animate={{ rotate: isExpanded ? 90 : 0 }}
     transition={{ duration: 0.2 }}
   >
-    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+    <ChevronRight className="h-4 w-4 text-stone-600" />
   </motion.button>
 );
 
@@ -512,7 +512,7 @@ const TableHead = React.forwardRef<HTMLTableCellElement, TableHeadProps>(
       <th
         ref={ref}
         className={cn(
-          "h-12 px-4 font-medium text-muted-foreground",
+          "h-11 px-4 font-mono text-sm font-medium text-stone-600 uppercase tracking-widest",
           alignClass,
           sortable && "cursor-pointer select-none hover:text-foreground",
           className,
@@ -534,7 +534,7 @@ const TableHead = React.forwardRef<HTMLTableCellElement, TableHeadProps>(
               animate={sortDirection ? { scale: 1 } : { scale: 0.9 }}
             >
               {sortDirection === "asc" ? (
-                <ChevronUp className="h-4 w-4 animate-sort-bounce text-table-sort-active" />
+                <ChevronUp className="h-4 w-4 animate-sort-bounce text-amber-400" />
               ) : sortDirection === "desc" ? (
                 <ChevronDown className="h-4 w-4 animate-sort-bounce text-table-sort-active" />
               ) : (
@@ -600,10 +600,10 @@ const CheckboxCell = ({
       }
     }}
     className={cn(
-      "flex h-4 w-4 cursor-pointer items-center justify-center rounded border transition-all duration-150",
+      "flex h-4 w-4 cursor-pointer items-center justify-center border transition-all duration-150",
       checked || indeterminate
-        ? "border-primary bg-primary text-primary-foreground"
-        : "border-muted-foreground/40 hover:border-muted-foreground",
+        ? "border-amber-400 bg-amber-400 text-stone-950"
+        : "border-stone-700 hover:border-stone-500",
     )}
   >
     <AnimatePresence mode="wait">
@@ -637,21 +637,21 @@ const SkeletonRow = ({
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
     transition={{ delay: index * 0.05 }}
-    className="border-table-border border-b"
+    className="border-stone-800 border-b"
   >
     <td colSpan={columns} className="p-4">
       <div className="flex items-center gap-4">
-        <div className="h-4 w-4 animate-pulse rounded bg-muted" />
+        <div className="h-4 w-4 animate-pulse bg-stone-800" />
         <div className="flex-1 space-y-2">
           <div
-            className="h-4 animate-pulse rounded bg-muted"
+            className="h-4 animate-pulse bg-stone-800"
             style={{ width: `${60 + Math.random() * 30}%` }}
           />
         </div>
         {Array.from({ length: columns - 2 }).map((_, i) => (
           <div
             key={i}
-            className="h-4 animate-pulse rounded bg-muted"
+            className="h-4 animate-pulse bg-stone-800"
             style={{ width: `${40 + Math.random() * 40}px` }}
           />
         ))}
@@ -674,7 +674,7 @@ const EmptyState = ({
     transition={{ duration: 0.3 }}
   >
     <td colSpan={colSpan} className="h-32 text-center">
-      <div className="flex flex-col items-center justify-center gap-2 text-muted-foreground">
+      <div className="flex flex-col items-center justify-center gap-2 text-stone-700 font-mono text-sm">
         {message || "No data available"}
       </div>
     </td>
@@ -787,7 +787,7 @@ export function AnimatedTable<T extends { id: string | number }>({
     <AnimatedTableRoot className={className}>
       {/* Toolbar */}
       {showToolbar && (
-        <div className="flex flex-wrap items-center justify-between gap-3 border-table-border border-b bg-table-header p-3">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-stone-800 border-b bg-stone-900 p-3">
           {searchable && (
             <div className="w-full sm:w-64">
               <TableSearch
@@ -813,7 +813,7 @@ export function AnimatedTable<T extends { id: string | number }>({
       <TableScrollContainer stickyHeader={stickyHeader}>
         <TableElement>
           <TableHeader sticky={stickyHeader}>
-            <tr className="border-table-border border-b">
+            <tr className="border-stone-800 border-b">
               {expandable && <TableHead className="w-10" />}
               {selectable && (
                 <TableHead className="w-12">

@@ -1,6 +1,8 @@
 "use client";
+
 import { Developer } from "@/lib/types/defense-types";
 import { useDraggable } from "@dnd-kit/core";
+import { Lock } from "lucide-react";
 
 export default function DeveloperCard({
   developer,
@@ -21,12 +23,12 @@ export default function DeveloperCard({
     : undefined;
 
   const borderClass = isCommitting
-    ? "border-amber-500 opacity-70 animate-pulse"
+    ? "border-amber-400/60 opacity-70 animate-pulse"
     : developer.isAssigned
-      ? "border-blue-700 opacity-40"
+      ? "border-blue-500/40 opacity-40"
       : isDragging
-        ? "border-purple-500 opacity-50"
-        : "border-gray-600 hover:border-purple-400 cursor-grab active:cursor-grabbing";
+        ? "border-stone-500 opacity-50"
+        : "border-stone-700 hover:border-stone-500 cursor-grab active:cursor-grabbing";
 
   return (
     <div
@@ -34,23 +36,25 @@ export default function DeveloperCard({
       style={style}
       {...listeners}
       {...attributes}
-      className={`bg-slate-800 rounded-lg p-3 border-2 transition ${borderClass}`}
+      className={`border bg-stone-900/50 p-3 transition ${borderClass}`}
     >
       <div className="flex items-center gap-2 mb-2">
-        <span className="text-2xl">{developer.avatar}</span>
-        <span className="text-white font-semibold">{developer.name}</span>
+        <span className="text-xl">{developer.avatar}</span>
+        <span className="text-sm text-white font-semibold">
+          {developer.name}
+        </span>
         {isCommitting && (
-          <span className="ml-auto text-xs text-amber-400">committing…</span>
+          <span className="ml-auto text-sm text-amber-400">committing…</span>
         )}
         {developer.isAssigned && !isCommitting && (
-          <span className="ml-auto text-xs text-blue-400">🔒</span>
+          <Lock className="ml-auto w-3.5 h-3.5 text-blue-400" />
         )}
       </div>
       <div className="flex gap-1 flex-wrap">
         {developer.skills.map((skill) => (
           <span
             key={skill.id}
-            className="px-2 py-1 bg-slate-700 text-gray-300 rounded text-xs"
+            className="px-2 py-0.5 border border-stone-700 bg-stone-800 text-stone-400 text-sm"
           >
             {skill.icon} {skill.name}
           </span>

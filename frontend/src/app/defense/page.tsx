@@ -43,8 +43,7 @@ import { useGameHub } from "@/hooks/useGameHub";
 import { ProofResult, useProver } from "@/hooks/useProver";
 import { StrKey } from "@stellar/stellar-sdk";
 import { useLeaderboard } from "@/hooks/useLeaderboard";
-
-// ─── Victory condition helpers ────────────────────────────────────────────────
+import { ArrowLeft, ShieldCheck } from "lucide-react";
 
 function getVictoryCondition(bot: AvailableBot): VictoryConditionTag {
   const vc = (bot as BotConfigFE).victoryCondition ?? "time_survival";
@@ -63,9 +62,7 @@ export default function DefensePage() {
 
   const { submitScore, fetchPersonalBest, topScores, personalBest } =
     useLeaderboard();
-
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-
   const actionLogRef = useRef<
     {
       assigned_at_ms: number;
@@ -74,15 +71,14 @@ export default function DefensePage() {
       threat_index: number;
     }[]
   >([]);
-  // Separate ref to track open (not yet closed) assignments
   const openAssignmentsRef = useRef<
     Map<
       string,
       { dev_index: number; threat_index: number; assigned_at_ms: number }
     >
   >(new Map());
-
   const hasLoggedRef = useRef(false);
+
   const { wallet } = useWallet();
   const pubkeyHex = wallet?.publicKey
     ? Buffer.from(StrKey.decodeEd25519PublicKey(wallet.publicKey)).toString(
@@ -97,8 +93,6 @@ export default function DefensePage() {
         : "1234",
     )
     .digest("hex");
-
-  // Time not being used for hash so it's easier to recalculate in Risc-Zero
   const SEED = generatedHash;
 
   const {
@@ -123,16 +117,13 @@ export default function DefensePage() {
   useEffect(() => {
     sync().then(() => reload());
   }, []);
-
   useEffect(() => {
     setSelectedBot(pickedBot);
   }, [pickedBot]);
 
   const startGame = async () => {
     if (!selectedBot) return;
-
     resetProver();
-
     const rawThreats = generateThreatsFromBot(selectedBot as BotConfigFE, SEED);
     const threats: ThreatWithCommit[] = rawThreats.map((t) => ({
       ...t,
@@ -141,7 +132,6 @@ export default function DefensePage() {
     }));
     const developers = generateDevelopers();
     const victoryCondition = getVictoryCondition(selectedBot);
-
     setGameState({
       isPlaying: true,
       isPaused: false,
@@ -157,24 +147,18 @@ export default function DefensePage() {
       defenderWon: null,
       endReason: null,
     });
-
     setShowGameOver(false);
     actionLogRef.current = [];
     openAssignmentsRef.current = new Map();
     hasLoggedRef.current = false;
-
-    // Call game hub — non-blocking, don't await
-    callHubStart(0).catch(console.error); // score=0 at start
+    callHubStart(0).catch(console.error);
   };
 
-  // ── Game loop ────────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!gameState?.isPlaying || gameState.isPaused) return;
-
     intervalRef.current = setInterval(() => {
       setGameState((prev) => {
         if (!prev) return null;
-
         const elapsed = (Date.now() - (prev.startTime || 0)) / 1000;
         const newTimeRemaining = Math.max(0, ROUND_DURATION - elapsed);
         const vc = prev.victoryCondition;
@@ -183,17 +167,12 @@ export default function DefensePage() {
           (threat) => {
             if (threat.isCured || threat.isFailed) return threat;
             if (threat.spawnTime > elapsed) return threat;
-
             let newDamage = threat.currentDamage;
             let newCureProgress = threat.cureProgress;
-
-            // ── Tick commit progress ─────────────────────────────────────────
             if (threat.committingDevId) {
               const newCommitProgress =
                 threat.commitProgress + 100 / COMMIT_TICKS;
-
               if (newCommitProgress >= 100) {
-                // Lock in: open assignment entry (will be closed on unassign or round end)
                 const devIndex = prev.developers.findIndex(
                   (d) => d.id === threat.committingDevId,
                 );
@@ -210,8 +189,6 @@ export default function DefensePage() {
                   commitProgress: 0,
                 };
               }
-
-              // Damage still ticks during commit window
               newDamage += threat.damageRate / 10;
               return {
                 ...threat,
@@ -219,21 +196,14 @@ export default function DefensePage() {
                 currentDamage: Math.min(100, newDamage),
               };
             }
-
-            // ── Normal damage / cure ─────────────────────────────────────────
-            if (!threat.assignedDeveloperId) {
+            if (!threat.assignedDeveloperId)
               newDamage += threat.damageRate / 10;
-            }
             if (threat.assignedDeveloperId) {
               const dev = prev.developers.find(
                 (d) => d.id === threat.assignedDeveloperId,
               );
-              if (dev) {
-                const cureSpeed = calculateCureSpeed(threat, dev);
-                newCureProgress += cureSpeed / 10;
-              }
+              if (dev) newCureProgress += calculateCureSpeed(threat, dev) / 10;
             }
-
             if (newCureProgress >= 100)
               return {
                 ...threat,
@@ -250,7 +220,6 @@ export default function DefensePage() {
                 committingDevId: null,
                 commitProgress: 0,
               };
-
             return {
               ...threat,
               currentDamage: Math.min(100, newDamage),
@@ -264,18 +233,6 @@ export default function DefensePage() {
         const allResolved = updatedThreats.every(
           (t) => t.isCured || t.isFailed,
         );
-
-        // Unattended = no dev assigned AND not committing
-        const activeUnattended = updatedThreats.filter(
-          (t) =>
-            !t.isCured &&
-            !t.isFailed &&
-            t.spawnTime <= elapsed &&
-            !t.assignedDeveloperId &&
-            !t.committingDevId,
-        ).length;
-
-        // Count threats that just failed this tick with no dev assigned (discrete, ZK-friendly)
         const newlyLeaked = updatedThreats.filter(
           (t) =>
             t.isFailed &&
@@ -285,7 +242,6 @@ export default function DefensePage() {
         ).length;
         const newDataLeaked =
           prev.dataLeaked + (vc === "data_exfiltration" ? newlyLeaked : 0);
-
         const score = calculateScore(
           cured,
           updatedThreats.length,
@@ -295,7 +251,6 @@ export default function DefensePage() {
 
         let defenderWon: boolean | null = null;
         let endReason: string | null = null;
-
         if (vc === "time_survival") {
           if (newTimeRemaining <= 0) {
             defenderWon = false;
@@ -305,20 +260,17 @@ export default function DefensePage() {
             endReason = "All threats neutralised before time ran out";
           }
         }
-
         if (vc === "system_destruction") {
           if (destroyed >= SYSTEM_DESTRUCTION_THRESHOLD) {
             defenderWon = false;
             endReason = `${destroyed} systems destroyed — bot wins`;
           } else if (allResolved || newTimeRemaining <= 0) {
-            // Defender wins if they kept destructions below threshold when time ends
             defenderWon = destroyed < SYSTEM_DESTRUCTION_THRESHOLD;
             endReason = defenderWon
               ? `Time's up — held to ${destroyed}/${SYSTEM_DESTRUCTION_THRESHOLD} destructions`
               : `${destroyed} systems destroyed — bot wins`;
           }
         }
-
         if (vc === "data_exfiltration") {
           if (newDataLeaked >= DATA_EXFIL_THRESHOLD) {
             defenderWon = false;
@@ -332,7 +284,6 @@ export default function DefensePage() {
         }
 
         if (defenderWon !== null) {
-          // Close open assignments
           const roundEndMs = Math.floor(elapsed * 1000);
           for (const [_, open] of openAssignmentsRef.current) {
             actionLogRef.current.push({
@@ -341,10 +292,7 @@ export default function DefensePage() {
             });
           }
           openAssignmentsRef.current.clear();
-
-          // Call end_game — fire and forget
           callHubEnd(sessionIdRef.current, defenderWon).catch(console.error);
-
           setShowGameOver(true);
           return {
             ...prev,
@@ -359,7 +307,6 @@ export default function DefensePage() {
             endReason,
           };
         }
-
         return {
           ...prev,
           timeRemaining: newTimeRemaining,
@@ -371,7 +318,6 @@ export default function DefensePage() {
         };
       });
     }, 100);
-
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
@@ -384,37 +330,22 @@ export default function DefensePage() {
       !hasLoggedRef.current
     ) {
       hasLoggedRef.current = true;
-      console.log("[ZK] Action log:", actionLogRef.current);
     }
   }, [gameState?.defenderWon]);
-
-  // useEffect(() => {
-  //   const handler = (e: Event) => {
-  //     const proof = (e as CustomEvent).detail as ProofResult;
-  //     setProofResult(proof);
-  //     verify(proof).catch(console.error); // auto-verify without making the user click some button
-  //   };
-  //   window.addEventListener("zk-proof-ready", handler);
-  //   return () => window.removeEventListener("zk-proof-ready", handler);
-  // }, [verify]);
 
   useEffect(() => {
     const handler = async (e: Event) => {
       const proof = (e as CustomEvent).detail as ProofResult;
       setProofResult(proof);
-
       const playerName = wallet?.publicKey
         ? wallet.publicKey.slice(0, 4) + "..." + wallet.publicKey.slice(-4)
         : "anon";
-
       const ok = await submitScore(
         proof,
         playerName,
         proof.journal.bot_config_id,
       );
-      if (ok) {
-        await fetchPersonalBest();
-      }
+      if (ok) await fetchPersonalBest();
     };
     window.addEventListener("zk-proof-ready", handler);
     return () => window.removeEventListener("zk-proof-ready", handler);
@@ -422,35 +353,26 @@ export default function DefensePage() {
 
   const handleSubmitScore = async () => {
     if (!gameState || !selectedBot) return;
-
     const botConfig = selectedBot as BotConfigFE;
     if (!botConfig.id) return;
-
     const tokenId = parseInt(botConfig.id.replace("token_", ""), 10);
     if (isNaN(tokenId)) return;
-
     await prove(SEED, tokenId, actionLogRef.current);
   };
-  // ── Drag handler ─────────────────────────────────────────────────────────────
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     setActiveDragId(null);
     if (!over || !gameState) return;
-
     const developerId = active.id as string;
     const threatId = over.id as string;
-
     setGameState((prev) => {
       if (!prev) return null;
-
       const targetThreat = prev.threats.find((t) => t.id === threatId);
       if (!targetThreat || targetThreat.isCured || targetThreat.isFailed)
         return prev;
-      // Block drop onto a threat already committing or locked
       if (targetThreat.committingDevId || targetThreat.assignedDeveloperId)
         return prev;
-
-      // Find previous threat this dev was assigned/committing to
       const prevAssignedThreat = prev.threats.find(
         (t) => t.assignedDeveloperId === developerId,
       );
@@ -459,7 +381,6 @@ export default function DefensePage() {
       );
       const previousDevId =
         targetThreat.assignedDeveloperId ?? targetThreat.committingDevId;
-
       const updatedThreats = prev.threats.map((t) => {
         if (t.id === prevAssignedThreat?.id) {
           const devIndex = prev.developers.findIndex(
@@ -483,7 +404,6 @@ export default function DefensePage() {
           return { ...t, committingDevId: developerId, commitProgress: 0 };
         return t;
       });
-
       const updatedDevelopers = prev.developers.map((d) => {
         if (d.id === developerId)
           return { ...d, isAssigned: true, assignedToThreatId: threatId };
@@ -491,7 +411,6 @@ export default function DefensePage() {
           return { ...d, isAssigned: false, assignedToThreatId: null };
         return d;
       });
-
       return {
         ...prev,
         threats: updatedThreats,
@@ -500,21 +419,35 @@ export default function DefensePage() {
     });
   };
 
-  // ── Bot selection screen ─────────────────────────────────────────────────────
+  // ── Bot selection screen ───────────────────────────────────────────────────
   if (!gameState || (!gameState.isPlaying && gameState.defenderWon === null)) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-slate-900 via-red-900 to-slate-900 p-8">
-        <div className="max-w-4xl mx-auto">
-          <button
-            onClick={() => router.push("/")}
-            className="mb-4 px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600 transition"
-          >
-            ← Back
-          </button>
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-white mb-2">Defense Mode</h1>
-            <p className="text-gray-400">Select a bot to defend against</p>
+      <div
+        className="min-h-screen bg-stone-950 text-white p-8"
+        style={{ fontFamily: "'IBM Plex Mono', monospace" }}
+      >
+        <div className="max-w-4xl mx-auto space-y-8">
+          <div className="flex items-start justify-between">
+            <div className="space-y-2">
+              <div className="text-sm text-stone-600 uppercase tracking-widest">
+                zero-trust · defender
+              </div>
+              <h1 className="text-4xl font-bold text-amber-400">
+                defense mode
+              </h1>
+              <p className="text-stone-500 text-sm">
+                select a bot to defend against
+              </p>
+            </div>
+            <button
+              onClick={() => router.push("/")}
+              className="flex items-center gap-2 border border-stone-700 px-4 py-2 text-stone-400 text-sm hover:border-stone-500 hover:text-white transition"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              back
+            </button>
           </div>
+
           <BotSelectGrid
             bots={bots}
             selectedBot={selectedBot}
@@ -522,38 +455,37 @@ export default function DefensePage() {
             isSyncing={isSyncing}
             onRefresh={() => sync(true).then(() => reload())}
           />
-          {selectedBot && (
-            <div className="text-center mt-8">
-              {(() => {
-                const vc = getVictoryCondition(selectedBot);
-                const meta = VICTORY_META[vc];
-                return (
-                  <div className="inline-flex items-center gap-2 mb-4 px-4 py-2 bg-slate-800 rounded-full border border-slate-600">
-                    <span>{meta.icon}</span>
-                    <span className="text-sm text-slate-300">
-                      <span className="text-white font-semibold">
-                        {meta.label}:
-                      </span>{" "}
-                      {meta.description}
+
+          {selectedBot &&
+            (() => {
+              const vc = getVictoryCondition(selectedBot);
+              const meta = VICTORY_META[vc];
+              return (
+                <div className="flex flex-col items-center gap-4">
+                  <div className="flex items-center gap-2 border border-stone-700 bg-stone-900/50 px-4 py-2">
+                    <span className="text-sm text-stone-400">
+                      win condition:{" "}
+                      <span className="text-white font-bold">{meta.label}</span>
+                      {" — "}
+                      <span className="text-stone-500">{meta.description}</span>
                     </span>
                   </div>
-                );
-              })()}
-              <br />
-              <button
-                onClick={startGame}
-                className="px-12 py-4 bg-green-600 text-white rounded-lg font-bold text-xl hover:bg-green-500 transition animate-pulse"
-              >
-                🛡️ Start Defense Round
-              </button>
-            </div>
-          )}
+                  <button
+                    onClick={startGame}
+                    className="flex items-center gap-2 bg-amber-400 text-stone-950 px-12 py-3 font-bold text-base hover:bg-amber-300 transition uppercase tracking-widest"
+                  >
+                    <ShieldCheck className="w-5 h-5" />
+                    start defense round
+                  </button>
+                </div>
+              );
+            })()}
         </div>
       </div>
     );
   }
 
-  // ── Active game ──────────────────────────────────────────────────────────────
+  // ── Active game ────────────────────────────────────────────────────────────
   const elapsed = ROUND_DURATION - gameState.timeRemaining;
   const activeThreats = gameState.threats.filter(
     (t) => t.spawnTime <= elapsed && !t.isCured && !t.isFailed,
@@ -567,52 +499,42 @@ export default function DefensePage() {
       onDragEnd={handleDragEnd}
       onDragStart={(e) => setActiveDragId(e.active.id as string)}
     >
-      <div className="min-h-screen bg-linear-to-br from-slate-900 via-red-900 to-slate-900 p-4">
+      <div
+        className="min-h-screen bg-stone-950 p-4"
+        style={{ fontFamily: "'IBM Plex Mono', monospace" }}
+      >
         {/* HUD */}
         <div className="max-w-7xl mx-auto mb-4">
-          <div className="bg-slate-800/90 rounded-lg p-4 flex flex-wrap justify-between items-center gap-4">
-            <div className="flex gap-6">
-              <div>
-                <div className="text-xs text-gray-400">Time</div>
-                <div
-                  className={`text-2xl font-bold ${
-                    gameState.victoryCondition === "time_survival" &&
-                    gameState.timeRemaining < 20
-                      ? "text-red-400 animate-pulse"
-                      : "text-white"
-                  }`}
-                >
-                  {Math.floor(gameState.timeRemaining)}s
-                </div>
-              </div>
-              <div>
-                <div className="text-xs text-gray-400">Cured</div>
-                <div className="text-2xl font-bold text-green-400">
-                  {gameState.threatsCured}
-                </div>
-              </div>
-              <div>
-                <div className="text-xs text-gray-400">Destroyed</div>
-                <div className="text-2xl font-bold text-red-400">
-                  {gameState.systemsDestroyed}
-                </div>
-              </div>
+          <div className="border border-stone-800 bg-stone-900/60 p-4 flex flex-wrap justify-between items-center gap-4">
+            <div className="flex gap-8">
+              <HudStat
+                label="time"
+                value={`${Math.floor(gameState.timeRemaining)}s`}
+                alert={
+                  gameState.victoryCondition === "time_survival" &&
+                  gameState.timeRemaining < 20
+                }
+              />
+              <HudStat
+                label="cured"
+                value={String(gameState.threatsCured)}
+                color="text-green-400"
+              />
+              <HudStat
+                label="destroyed"
+                value={String(gameState.systemsDestroyed)}
+                color="text-red-400"
+              />
             </div>
             <VictoryConditionTracker gameState={gameState} />
-            {/* <div className="text-right">
-              <div className="text-xs text-gray-400">Score</div>
-              <div className="text-2xl font-bold text-purple-400">
-                {gameState.score}
-              </div>
-            </div> */}
           </div>
         </div>
 
         {/* Main game area */}
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-4">
           <div className="lg:col-span-2 space-y-3">
-            <h2 className="text-xl font-bold text-white mb-2">
-              Active Threats
+            <h2 className="text-base font-bold text-stone-400 uppercase tracking-widest">
+              active threats
             </h2>
             <div className="space-y-3 max-h-[calc(100vh-220px)] overflow-y-auto">
               {activeThreats.map((threat) => {
@@ -632,15 +554,17 @@ export default function DefensePage() {
                 );
               })}
               {activeThreats.length === 0 && (
-                <div className="bg-slate-800 rounded-lg p-8 text-center text-gray-400">
-                  Waiting for threats to spawn…
+                <div className="border border-stone-800 bg-stone-900/30 p-8 text-center text-stone-600 text-sm">
+                  waiting for threats to spawn…
                 </div>
               )}
             </div>
           </div>
 
           <div className="space-y-3">
-            <h2 className="text-xl font-bold text-white mb-2">Developers</h2>
+            <h2 className="text-base font-bold text-stone-400 uppercase tracking-widest">
+              developers
+            </h2>
             <div className="space-y-2">
               {gameState.developers.map((dev) => {
                 const isCommitting = gameState.threats.some(
@@ -682,13 +606,10 @@ export default function DefensePage() {
 
       <DragOverlay>
         {activeDeveloper && (
-          <div className="bg-slate-700 rounded-lg p-3 border-2 border-purple-500 shadow-2xl opacity-90">
-            <div className="flex items-center gap-2">
-              <span className="text-2xl">{activeDeveloper.avatar}</span>
-              <span className="text-white font-semibold">
-                {activeDeveloper.name}
-              </span>
-            </div>
+          <div className="border border-amber-400/50 bg-stone-900 p-3 shadow-xl">
+            <span className="text-sm text-white font-semibold">
+              {activeDeveloper.name}
+            </span>
           </div>
         )}
       </DragOverlay>
@@ -696,7 +617,30 @@ export default function DefensePage() {
   );
 }
 
-// ─── Victory Condition Tracker ────────────────────────────────────────────────
+function HudStat({
+  label,
+  value,
+  color = "text-white",
+  alert = false,
+}: {
+  label: string;
+  value: string;
+  color?: string;
+  alert?: boolean;
+}) {
+  return (
+    <div>
+      <div className="text-sm text-stone-600 uppercase tracking-widest">
+        {label}
+      </div>
+      <div
+        className={`text-2xl font-bold tabular-nums ${alert ? "text-red-400 animate-pulse" : color}`}
+      >
+        {value}
+      </div>
+    </div>
+  );
+}
 
 function VictoryConditionTracker({
   gameState,
@@ -710,22 +654,16 @@ function VictoryConditionTracker({
   if (victoryCondition === "time_survival") {
     const pct = (timeRemaining / ROUND_DURATION) * 100;
     return (
-      <div className="flex-1 min-w-48">
-        <div className="flex items-center justify-between text-xs mb-1">
-          <span className="text-gray-400">
-            {meta.icon} {meta.label}
+      <div className="flex-1 min-w-48 space-y-1">
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-stone-500 uppercase tracking-widest">
+            {meta.label}
           </span>
-          <span className="text-red-400 font-semibold">Bot wins at 0s</span>
+          <span className="text-red-400">bot wins at 0s</span>
         </div>
-        <div className="h-3 bg-slate-700 rounded-full overflow-hidden">
+        <div className="h-2 bg-stone-800 overflow-hidden">
           <div
-            className={`h-full transition-all duration-300 ${
-              pct > 50
-                ? "bg-green-500"
-                : pct > 20
-                  ? "bg-yellow-500"
-                  : "bg-red-500 animate-pulse"
-            }`}
+            className={`h-full transition-all duration-300 ${pct > 50 ? "bg-green-500" : pct > 20 ? "bg-amber-500" : "bg-red-500 animate-pulse"}`}
             style={{ width: `${pct}%` }}
           />
         </div>
@@ -735,24 +673,22 @@ function VictoryConditionTracker({
 
   if (victoryCondition === "system_destruction") {
     return (
-      <div className="flex-1 min-w-48">
-        <div className="flex items-center justify-between text-xs mb-1">
-          <span className="text-gray-400">
-            {meta.icon} {meta.label}
+      <div className="flex-1 min-w-48 space-y-1">
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-stone-500 uppercase tracking-widest">
+            {meta.label}
           </span>
           <span
-            className={`font-semibold ${systemsDestroyed >= 2 ? "text-red-400 animate-pulse" : "text-slate-300"}`}
+            className={`font-semibold ${systemsDestroyed >= 2 ? "text-red-400 animate-pulse" : "text-stone-300"}`}
           >
-            {systemsDestroyed} / {SYSTEM_DESTRUCTION_THRESHOLD} systems lost
+            {systemsDestroyed} / {SYSTEM_DESTRUCTION_THRESHOLD} lost
           </span>
         </div>
         <div className="flex gap-1">
           {Array.from({ length: SYSTEM_DESTRUCTION_THRESHOLD }).map((_, i) => (
             <div
               key={i}
-              className={`flex-1 h-3 rounded-full transition-all duration-300 ${
-                i < systemsDestroyed ? "bg-red-500" : "bg-slate-600"
-              }`}
+              className={`flex-1 h-2 transition-all duration-300 ${i < systemsDestroyed ? "bg-red-500" : "bg-stone-700"}`}
             />
           ))}
         </div>
@@ -761,26 +697,20 @@ function VictoryConditionTracker({
   }
 
   return (
-    <div className="flex-1 min-w-48">
-      <div className="flex items-center justify-between text-xs mb-1">
-        <span className="text-gray-400">
-          {meta.icon} {meta.label}
+    <div className="flex-1 min-w-48 space-y-1">
+      <div className="flex items-center justify-between text-sm">
+        <span className="text-stone-500 uppercase tracking-widest">
+          {meta.label}
         </span>
         <span
-          className={`font-semibold ${dataLeaked > 70 ? "text-red-400 animate-pulse" : "text-slate-300"}`}
+          className={`font-semibold ${dataLeaked > 70 ? "text-red-400 animate-pulse" : "text-stone-300"}`}
         >
           {dataLeaked.toFixed(0)}% exfiltrated
         </span>
       </div>
-      <div className="h-3 bg-slate-700 rounded-full overflow-hidden">
+      <div className="h-2 bg-stone-800 overflow-hidden">
         <div
-          className={`h-full transition-all duration-300 ${
-            dataLeaked > 70
-              ? "bg-red-500 animate-pulse"
-              : dataLeaked > 40
-                ? "bg-orange-500"
-                : "bg-cyan-500"
-          }`}
+          className={`h-full transition-all duration-300 ${dataLeaked > 70 ? "bg-red-500 animate-pulse" : dataLeaked > 40 ? "bg-orange-500" : "bg-blue-500"}`}
           style={{ width: `${dataLeaked}%` }}
         />
       </div>

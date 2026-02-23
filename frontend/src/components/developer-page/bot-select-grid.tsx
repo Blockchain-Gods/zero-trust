@@ -4,6 +4,7 @@ import { useState } from "react";
 import { BotSelectCard } from "./bot-select-card";
 import type { AvailableBot } from "@/hooks/useAvailableBots";
 import type { DeployedBot } from "@/lib/storage";
+import { RefreshCw, Link, HardDrive, LayoutGrid, Bot } from "lucide-react";
 
 type FilterTab = "all" | "onchain" | "local";
 
@@ -24,7 +25,6 @@ export function BotSelectGrid({
 }: BotSelectGridProps) {
   const [filter, setFilter] = useState<FilterTab>("all");
 
-  //   console.log("[BotSelectGrid] Bots: ", bots);
   const displayed = bots.filter((b) => {
     if (filter === "onchain") return "isOnChain" in b && b.isOnChain;
     if (filter === "local") return !("isOnChain" in b && b.isOnChain);
@@ -35,49 +35,60 @@ export function BotSelectGrid({
     (b): b is DeployedBot => "isOnChain" in b && b.isOnChain,
   ).length;
 
+  const TABS: {
+    key: FilterTab;
+    label: string;
+    count: number;
+    Icon: React.ElementType;
+  }[] = [
+    { key: "all", label: "all", count: bots.length, Icon: LayoutGrid },
+    { key: "onchain", label: "on-chain", count: onChainCount, Icon: Link },
+    {
+      key: "local",
+      label: "local",
+      count: bots.length - onChainCount,
+      Icon: HardDrive,
+    },
+  ];
+
   return (
     <div className="flex flex-col gap-4">
-      {/* Header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-white">
-          Select a Bot to Defend Against
+        <h2 className="text-sm text-stone-500 uppercase tracking-widest">
+          select a bot to defend against
         </h2>
         {onRefresh && (
           <button
             onClick={onRefresh}
             disabled={isSyncing}
-            className="text-xs text-slate-400 hover:text-cyan-300 transition disabled:opacity-50 flex items-center gap-1"
+            className="flex items-center gap-1.5 text-sm text-stone-600 hover:text-stone-400 transition disabled:opacity-40"
           >
-            <span className={isSyncing ? "animate-spin" : ""}>↻</span>
-            {isSyncing ? "Syncing…" : "Refresh"}
+            <RefreshCw
+              className={`w-3.5 h-3.5 ${isSyncing ? "animate-spin" : ""}`}
+            />
+            {isSyncing ? "syncing…" : "refresh"}
           </button>
         )}
       </div>
 
       {/* Filter tabs */}
-      <div className="flex gap-2 text-sm">
-        {(
-          [
-            { key: "all", label: `All (${bots.length})` },
-            { key: "onchain", label: `On-chain (${onChainCount})` },
-            { key: "local", label: `Local (${bots.length - onChainCount})` },
-          ] as { key: FilterTab; label: string }[]
-        ).map(({ key, label }) => (
+      <div className="flex gap-2">
+        {TABS.map(({ key, label, count, Icon }) => (
           <button
             key={key}
             onClick={() => setFilter(key)}
-            className={`px-3 py-1 rounded-full border transition ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 border text-sm transition ${
               filter === key
-                ? "border-cyan-500 bg-cyan-900/40 text-cyan-300"
-                : "border-slate-700 text-slate-400 hover:border-slate-500"
+                ? "border-amber-400/60 bg-amber-400/10 text-amber-400"
+                : "border-stone-800 text-stone-600 hover:border-stone-600 hover:text-stone-400"
             }`}
           >
-            {label}
+            <Icon className="w-3.5 h-3.5" />
+            {label} ({count})
           </button>
         ))}
       </div>
 
-      {/* Grid */}
       {displayed.length === 0 ? (
         <EmptyState filter={filter} isSyncing={isSyncing} />
       ) : (
@@ -105,32 +116,28 @@ function EmptyState({
 }) {
   if (isSyncing) {
     return (
-      <div className="text-center py-12 text-slate-400">
-        <div className="text-3xl mb-2 animate-pulse">🔄</div>
-        <p>Fetching bots from chain…</p>
+      <div className="text-center py-12 text-stone-600 space-y-2">
+        <RefreshCw className="w-8 h-8 mx-auto animate-spin text-stone-700" />
+        <p className="text-sm">fetching bots from chain…</p>
       </div>
     );
   }
-
   if (filter === "onchain") {
     return (
-      <div className="text-center py-12 text-slate-400">
-        <div className="text-3xl mb-2">⛓️</div>
-        <p>No on-chain bots found.</p>
-        <p className="text-xs mt-1 text-slate-500">
-          Deploy a bot in Hacker Mode to see it here.
+      <div className="text-center py-12 text-stone-600 space-y-2">
+        <Link className="w-8 h-8 mx-auto text-stone-700" />
+        <p className="text-sm">no on-chain bots found</p>
+        <p className="text-sm text-stone-700">
+          deploy a bot in hacker mode to see it here
         </p>
       </div>
     );
   }
-
   return (
-    <div className="text-center py-12 text-slate-400">
-      <div className="text-3xl mb-2">🤖</div>
-      <p>No bots available yet.</p>
-      <p className="text-xs mt-1 text-slate-500">
-        Create one in Hacker Mode first.
-      </p>
+    <div className="text-center py-12 text-stone-600 space-y-2">
+      <Bot className="w-8 h-8 mx-auto text-stone-700" />
+      <p className="text-sm">no bots available yet</p>
+      <p className="text-sm text-stone-700">create one in hacker mode first</p>
     </div>
   );
 }
