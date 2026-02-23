@@ -49,7 +49,7 @@ export function useGameHub() {
           player1_points: BigInt(currentScore),
           player2_points: BigInt(0),
         });
-        await tx.signAndSend(); // ← no args needed, signTransaction already in client
+        await tx.signAndSend({ force: true }); // ← no args needed, signTransaction already in client
         console.log("[GameHub] start_game session_id:", sessionId);
       } catch (e) {
         console.error("[GameHub] start_game failed:", e);

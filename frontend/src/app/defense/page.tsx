@@ -40,8 +40,9 @@ import ThreatCard from "@/components/developer-page/threat-card";
 import { useWallet } from "@/hooks/useWallet";
 import { createHash } from "crypto";
 import { useGameHub } from "@/hooks/useGameHub";
-import { useProver } from "@/hooks/useProver";
+import { ProofResult, useProver } from "@/hooks/useProver";
 import { StrKey } from "@stellar/stellar-sdk";
+import { useVerifier } from "@/hooks/useVerifier";
 
 // ─── Victory condition helpers ────────────────────────────────────────────────
 
@@ -58,6 +59,9 @@ export default function DefensePage() {
   const [gameState, setGameState] = useState<ExtendedGameState | null>(null);
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [showGameOver, setShowGameOver] = useState(false);
+  const [proofResult, setProofResult] = useState<ProofResult | null>(null);
+  const { verify } = useVerifier();
+
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const actionLogRef = useRef<
@@ -381,6 +385,16 @@ export default function DefensePage() {
       console.log("[ZK] Action log:", actionLogRef.current);
     }
   }, [gameState?.defenderWon]);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const proof = (e as CustomEvent).detail as ProofResult;
+      setProofResult(proof);
+      verify(proof).catch(console.error); // auto-verify without making the user click some button
+    };
+    window.addEventListener("zk-proof-ready", handler);
+    return () => window.removeEventListener("zk-proof-ready", handler);
+  }, [verify]);
 
   const handleSubmitScore = async () => {
     if (!gameState || !selectedBot) return;
