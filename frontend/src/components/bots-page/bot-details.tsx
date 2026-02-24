@@ -91,10 +91,10 @@ export default function BotDetails({ bot }: { bot: SavedBot }) {
         </Section>
 
         {/* Deploy */}
-        <button className="w-full flex items-center justify-center gap-2 bg-amber-400 text-stone-950 py-3 font-bold text-sm hover:bg-amber-300 transition uppercase tracking-widest">
+        {/* <button className="w-full flex items-center justify-center gap-2 bg-amber-400 text-stone-950 py-3 font-bold text-sm hover:bg-amber-300 transition uppercase tracking-widest">
           <Gamepad2 className="w-4 h-4" />
           deploy to defense game
-        </button>
+        </button> */}
       </div>
     </div>
   );
